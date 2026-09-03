@@ -94,19 +94,29 @@ def _kvcache_out(*args, **kwargs):
 
 
 @pytest.mark.parametrize("pack_gqa", [False, True])
-def test_kvcache_cross_kv_boundary_no_append_metadata_packgqa(pack_gqa):
+@pytest.mark.parametrize(
+    "dtype, headdim, num_splits",
+    [
+        pytest.param(torch.bfloat16, 64, 2, id="bf16-hdim64-split2"),
+        pytest.param(torch.bfloat16, 128, 0, id="bf16-hdim128-auto"),
+        pytest.param(torch.float16, 128, 1, id="fp16-hdim128-single"),
+    ],
+)
+def test_kvcache_cross_kv_boundary_no_append_metadata_packgqa(
+    dtype, headdim, num_splits, pack_gqa
+):
     torch.manual_seed(0)
-    batch, seqlen_q, seqlen_k, nheads_k, gqa, headdim = 2, 5, 16, 2, 2, 64
+    batch, seqlen_q, seqlen_k, nheads_k, gqa = 2, 5, 16, 2, 2
     nheads_q = nheads_k * gqa
-    q = torch.randn(batch, seqlen_q, nheads_q, headdim, device="cuda", dtype=torch.bfloat16)
-    k_cache = torch.randn(batch, seqlen_k, nheads_k, headdim, device="cuda", dtype=torch.bfloat16)
-    v_cache = torch.randn(batch, seqlen_k, nheads_k, headdim, device="cuda", dtype=torch.bfloat16)
+    q = torch.randn(batch, seqlen_q, nheads_q, headdim, device="cuda", dtype=dtype)
+    k_cache = torch.randn(batch, seqlen_k, nheads_k, headdim, device="cuda", dtype=dtype)
+    v_cache = torch.randn(batch, seqlen_k, nheads_k, headdim, device="cuda", dtype=dtype)
     cache_seqlens = torch.tensor([11, 8], device="cuda", dtype=torch.int32)
     cross_kv_boundary = torch.tensor([[0, 3, 7, 11, 5], [2, 6, 0, 8, 4]], device="cuda", dtype=torch.int32)
 
     k_ref, v_ref = _logical_cache(k_cache, v_cache, cache_seqlens)
     out_ref = _boundary_attention_ref(q, k_ref, v_ref, cross_kv_boundary)
-    metadata = _metadata_for(q, k_cache, cache_seqlens, cross_kv_boundary, num_splits=2, pack_gqa=pack_gqa)
+    metadata = _metadata_for(q, k_cache, cache_seqlens, cross_kv_boundary, num_splits=num_splits, pack_gqa=pack_gqa)
 
     for scheduler_metadata in [None, metadata]:
         out = _kvcache_out(
@@ -116,7 +126,7 @@ def test_kvcache_cross_kv_boundary_no_append_metadata_packgqa(pack_gqa):
             cache_seqlens=cache_seqlens,
             cross_kv_boundary=cross_kv_boundary,
             scheduler_metadata=scheduler_metadata,
-            num_splits=2,
+            num_splits=num_splits,
             pack_gqa=pack_gqa,
             return_softmax_lse=True,
         )

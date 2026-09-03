@@ -46,6 +46,20 @@ inline at::cuda::CUDAGuard make_cuda_guard_from_tensor(const at::Tensor& t) {
   return at::cuda::CUDAGuard(static_cast<c10::DeviceIndex>(t.get_device()));
 }
 
+inline void check_supported_arch(int major) {
+#ifdef FLASHATTENTION_DISABLE_SM8x
+    TORCH_CHECK(major == 9,
+                "This FlashAttention build was compiled with FLASH_ATTENTION_DISABLE_SM80=TRUE "
+                "and only supports Hopper GPUs (SM90).");
+#elif defined(FLASHATTENTION_DISABLE_SM90)
+    TORCH_CHECK(major == 8,
+                "This FlashAttention build was compiled with FLASH_ATTENTION_DISABLE_SM90=TRUE "
+                "and only supports Ampere/Ada GPUs (SM8x).");
+#else
+    TORCH_CHECK(major >= 8, "FlashAttention only supports Ampere GPUs or newer.");
+#endif
+}
+
 inline void check_cross_kv_boundary(
         const at::Tensor& cross_kv_boundary,
         bool is_varlen_q,
@@ -569,6 +583,10 @@ mha_fwd_get_scheduler_metadata(
         int64_t sm_margin,
         std::optional<at::Tensor> cross_kv_boundary_) {
 
+    auto device_guard = make_cuda_guard_from_tensor(seqused_k);
+    auto dprops = at::cuda::getCurrentDeviceProperties();
+    check_supported_arch(dprops->major);
+
     TORCH_CHECK(qkv_dtype == at::ScalarType::Half || qkv_dtype == at::ScalarType::BFloat16 || qkv_dtype == at::ScalarType::Float8_e4m3fn,
                 "FlashAttention only supports fp16, bf16, and fp8_e4m3 data type");
     TORCH_CHECK(num_heads % num_heads_k == 0, "Number of heads in key/value must divide number of heads in query");
@@ -632,8 +650,8 @@ mha_fwd_get_scheduler_metadata(
             params.window_size_right = 0;
         }
     }
-    params.arch = at::cuda::getCurrentDeviceProperties()->major * 10 + at::cuda::getCurrentDeviceProperties()->minor;
-    params.num_sm = at::cuda::getCurrentDeviceProperties()->multiProcessorCount - sm_margin;
+    params.arch = dprops->major * 10 + dprops->minor;
+    params.num_sm = dprops->multiProcessorCount - sm_margin;
     params.softcap = has_softcap ? 1.0f : 0.0f;
 
     params.page_size = page_size.has_value() ? page_size.value() : 1;
@@ -649,10 +667,6 @@ mha_fwd_get_scheduler_metadata(
     params.pack_gqa = pack_gqa_.has_value() ? pack_gqa_.value() : get_pack_gqa(params);
 
     bool is_varlen = true;
-
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_cuda_guard_from_tensor(seqused_k);
 
     auto opts = seqused_k.options();
     // This needs to be set after get_num_splits
@@ -745,9 +759,9 @@ mha_fwd(at::Tensor q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seql
         std::optional<at::Tensor> cross_kv_boundary_  // (b, s_q) or (total_q,). Per-query KV boundary for staircase mask.
         ) {
 
+    auto device_guard = make_cuda_guard_from_tensor(q);
     auto dprops = at::cuda::getCurrentDeviceProperties();
-    bool is_sm8x = dprops->major >= 8;
-    TORCH_CHECK(is_sm8x, "FlashAttention only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto q_type = q.scalar_type();
     TORCH_CHECK(q_type == at::ScalarType::Half || q_type == at::ScalarType::BFloat16 || q_type == at::ScalarType::Float8_e4m3fn,
@@ -923,10 +937,6 @@ mha_fwd(at::Tensor q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seql
     int const head_size_v_rounded = head_size_v == head_size ? head_size_rounded : round_up_headdimv(head_size_v);
     int const seqlen_q_rounded = round_multiple(seqlen_q, 128);
     int const seqlen_k_rounded = round_multiple(seqlen_k, 128);
-
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_cuda_guard_from_tensor(q);
 
     at::Tensor softmax_lse;
     if (!is_varlen_q) {
@@ -1348,9 +1358,9 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
         TORCH_CHECK(false, "This flash attention build does not support backward.");
     #endif
 
+    auto device_guard = make_cuda_guard_from_tensor(q);
     auto dprops = at::cuda::getCurrentDeviceProperties();
-    bool is_sm8x = dprops->major >= 8;
-    TORCH_CHECK(is_sm8x, "FlashAttention only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto q_type = q.dtype();
     TORCH_CHECK(q_type == torch::kFloat16 || q_type == torch::kBFloat16,
@@ -1527,10 +1537,6 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
         dv = torch::empty_like(v);
     }
 
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_cuda_guard_from_tensor(q);
-
     auto opts = q.options();
     // Need softmax_d to have total_q_padded_rounded since we want its address to be aligned by 16/8 bytes for TMA / LDG.64
     at::Tensor softmax_d, softmax_lse_log2;
@@ -1644,9 +1650,9 @@ mha_combine(at::Tensor out_partial,         // num_splits x batch_size x seqlen 
             std::optional<at::ScalarType> out_dtype_
             ) {
 
+    auto device_guard = make_cuda_guard_from_tensor(out_partial);
     auto dprops = at::cuda::getCurrentDeviceProperties();
-    bool is_sm8x = dprops->major >= 8;
-    TORCH_CHECK(is_sm8x, "Attention combine function only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto out_partial_type = out_partial.scalar_type();
     TORCH_CHECK(out_partial_type == at::ScalarType::Float, "Attention combine function only support fp32 data type");
@@ -1696,10 +1702,6 @@ mha_combine(at::Tensor out_partial,         // num_splits x batch_size x seqlen 
         out = torch::empty({batch_size, seqlen, num_heads, head_size}, opts.dtype(out_type));
     }
 
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    at::cuda::CUDAGuard device_guard{(char)out_partial.get_device()};
-
     auto softmax_lse = torch::empty({batch_size, num_heads, seqlen}, opts.dtype(at::kFloat)).transpose(1, 2);
 
     Flash_fwd_params params {};  // Need to reset the params to set everything to zero
@@ -1724,7 +1726,7 @@ mha_combine(at::Tensor out_partial,         // num_splits x batch_size x seqlen 
     params.o_row_stride = out.stride(1);
     params.o_head_stride = out.stride(2);
     params.o_batch_stride = out.stride(0);
-    params.arch = at::cuda::getCurrentDeviceProperties()->major * 10 + at::cuda::getCurrentDeviceProperties()->minor;
+    params.arch = dprops->major * 10 + dprops->minor;
 
     if (seqlen > 0 && batch_size > 0) {
         auto stream = at::cuda::getCurrentCUDAStream().stream();
