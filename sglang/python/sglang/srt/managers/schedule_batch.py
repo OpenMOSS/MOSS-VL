@@ -974,6 +974,7 @@ class Req(ReqDllmMixin):
         self,
         tree_cache: Optional[BasePrefixCache] = None,
         cow_mamba: Optional[bool] = None,
+        model_config: Optional["ModelConfig"] = None,
     ):
         if self.is_dllm():
             self._init_fill_ids_for_dllm()
@@ -1042,6 +1043,40 @@ class Req(ReqDllmMixin):
 
             if self.is_dllm():
                 self._update_block_offset_for_dllm()
+
+        # Encoder-decoder (cross-attention) models treat the encoder (vision)
+        # token block as a whole: the encoder forward computes KV over all
+        # vision tokens via global attention, so a partially-cached encoder
+        # prefix cannot be reused. With a paged KV cache (page_size > 1, e.g.
+        # the Ascend default of 128), match_prefix truncates the matched
+        # length to a page boundary, which can land inside the encoder region
+        # (0 < matched < encoder_len). That violates the contract enforced in
+        # ScheduleBatch.prepare_encoder_info_extend. Drop such a partial match
+        # so the full encoder is recomputed. The previously-matched radix
+        # nodes are untouched (match_prefix only refreshes LRU access time, it
+        # does not take a lock_ref), so no cache leak is introduced.
+        if (
+            model_config is not None
+            and model_config.is_encoder_decoder
+            and tree_cache is not None
+            and not tree_cache.is_chunk_cache()
+            and len(self.prefix_indices) > 0
+        ):
+            encoder_len = 0
+            if (
+                self.multimodal_inputs is not None
+                and self.multimodal_inputs.num_image_tokens is not None
+            ):
+                encoder_len = self.multimodal_inputs.num_image_tokens
+            if 0 < len(self.prefix_indices) < encoder_len:
+                self.prefix_indices = torch.empty(
+                    (0,), dtype=torch.int64, device=self.prefix_indices.device
+                )
+                self.last_node = tree_cache.root_node
+                self.last_host_node = tree_cache.root_node
+                self.host_hit_length = 0
+                self.mamba_branching_seqlen = None
+                self.cache_protected_len = 0
 
         if (
             self.is_retracted

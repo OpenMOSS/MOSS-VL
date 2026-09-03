@@ -2035,7 +2035,9 @@ class Scheduler(
 
     def _prefetch_kvcache(self, req: Req):
         if self.enable_hicache_storage:
-            req.init_next_round_input(self.tree_cache, cow_mamba=False)
+            req.init_next_round_input(
+                self.tree_cache, cow_mamba=False, model_config=self.model_config
+            )
             last_host_node = req.last_host_node
             if last_host_node.backuped or last_host_node is self.tree_cache.root_node:
                 last_hash = last_host_node.get_last_hash_value()
@@ -2556,7 +2558,7 @@ class Scheduler(
                     req.rid
                 )
 
-            req.init_next_round_input(self.tree_cache)
+            req.init_next_round_input(self.tree_cache, model_config=self.model_config)
             res = adder.add_one_req(
                 req,
                 has_chunked_req=(self.chunked_req is not None),

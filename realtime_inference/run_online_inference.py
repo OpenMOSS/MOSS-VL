@@ -4,6 +4,7 @@ import argparse
 import importlib.util
 import asyncio
 import json
+import pathlib
 import queue
 import re
 import sys
@@ -13,6 +14,8 @@ from io import BytesIO
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, Iterable
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from PIL import Image
 
@@ -194,7 +197,7 @@ def parse_args() -> argparse.Namespace:
         choices=("bfloat16", "float16", "float32"),
         default="bfloat16",
     )
-    parser.add_argument("--attention-backend", default="flash_attention_2")
+    parser.add_argument("--attention-backend", default="auto")
     parser.add_argument("--show-silence", action="store_true")
     parser.add_argument("--raw-output", action="store_true")
     parser.add_argument(
@@ -361,7 +364,9 @@ def build_source(args: argparse.Namespace, stop_event: Event) -> Iterable[VideoF
 def load_model(checkpoint: str, args: argparse.Namespace):
     import torch
     from transformers import AutoModelForCausalLM, AutoProcessor
+    import device_utils
 
+    device_utils.print_device_info()
     dtype = {
         "bfloat16": torch.bfloat16,
         "float16": torch.float16,
@@ -378,7 +383,7 @@ def load_model(checkpoint: str, args: argparse.Namespace):
         trust_remote_code=True,
         device_map=args.device_map,
         dtype=dtype,
-        attn_implementation=args.attention_backend,
+        attn_implementation=device_utils.resolve_attn_impl(args.attention_backend),
     )
     model.eval()
     missing_interfaces = [

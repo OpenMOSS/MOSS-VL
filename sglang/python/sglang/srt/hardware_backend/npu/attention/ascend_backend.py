@@ -1587,7 +1587,7 @@ class AscendAttnBackend(AttentionBackend):
         k_rope: Optional[torch.Tensor] = None,
         sinks: Optional[torch.Tensor] = None,
     ):
-        if save_kv_cache:
+        if save_kv_cache and k is not None and v is not None:
             if self.use_mla:
                 k = k.view(-1, layer.tp_k_head_num, self.kv_lora_rank)
                 k_rope = k_rope.view(-1, layer.tp_k_head_num, self.qk_rope_head_dim)
@@ -1599,7 +1599,7 @@ class AscendAttnBackend(AttentionBackend):
                     layer, forward_batch.out_cache_loc, k, v
                 )
 
-        if sinks is not None:
+        if sinks is not None and k is not None:
             k_cache = forward_batch.token_to_kv_pool.get_key_buffer(layer.layer_id)
             v_cache = forward_batch.token_to_kv_pool.get_value_buffer(layer.layer_id)
 

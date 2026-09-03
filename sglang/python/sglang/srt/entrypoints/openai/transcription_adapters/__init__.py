@@ -7,9 +7,15 @@ from sglang.srt.entrypoints.openai.transcription_adapters.base import (  # noqa:
 )
 
 # Import built-in adapters so they self-register via @register_transcription_adapter.
-from sglang.srt.entrypoints.openai.transcription_adapters.qwen3_asr import (  # noqa: F401
-    Qwen3ASRAdapter,
-)
+# Use try/except for qwen3_asr since it depends on sgl_kernel_npu which may not
+# be fully available on all NPU environments (triton.language.extra.cann).
+try:
+    from sglang.srt.entrypoints.openai.transcription_adapters.qwen3_asr import (  # noqa: F401
+        Qwen3ASRAdapter,
+    )
+except ImportError:
+    Qwen3ASRAdapter = None
+
 from sglang.srt.entrypoints.openai.transcription_adapters.whisper import (  # noqa: F401
     WhisperAdapter,
 )
