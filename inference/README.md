@@ -62,6 +62,15 @@ python inference/run_inference.py \
 
 If `--output` is omitted, the script writes results to `<input_stem>_results.json`.
 
+Cross-attention keeps its existing default unless an override is provided. To
+use the repository's specialized FA3 kernel for cross-attention only, first
+[install the kernel](../flash-attention-src/README.md#build-and-installation),
+then add:
+
+```bash
+--cross-attention-implementation flash_attention_3
+```
+
 ## Input Format
 
 The input file can be either:

@@ -189,6 +189,12 @@ python finetune/train.py \
   --report_to none
 ```
 
+Cross-attention keeps its existing default unless an override is provided. To
+use the repository's specialized FA3 kernel for cross-attention only, first
+[install the kernel](../flash-attention-src/README.md#build-and-installation),
+then add `--cross_attention_implementation flash_attention_3` to the training
+command.
+
 ## Key Arguments
 
 ### ModelArguments
@@ -196,6 +202,7 @@ python finetune/train.py \
 | Argument | Default | Description |
 |---|---|---|
 | `--model_name_or_path` | (required) | Path to the MOSS-VL checkpoint |
+| `--cross_attention_implementation` | `None` | Optional cross-attention backend override |
 | `--tune_vision` | `False` | Train the vision encoder |
 | `--tune_language` | `True` | Train the language model layers |
 | `--tune_lm_head` | `True` | Train the LM head projection |

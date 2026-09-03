@@ -3,7 +3,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 torch = types.ModuleType("torch")
@@ -18,6 +18,41 @@ run_inference = importlib.util.module_from_spec(module_spec)
 with patch.dict(sys.modules, {"torch": torch, "transformers": transformers}):
     module_spec.loader.exec_module(run_inference)
 resolve_query_media_paths = run_inference.resolve_query_media_paths
+
+
+class LoadModelTest(unittest.TestCase):
+    def test_default_does_not_pass_cross_attention_override(self):
+        processor_loader = MagicMock()
+        model_loader = MagicMock()
+
+        with (
+            patch.object(run_inference, "AutoProcessor", processor_loader),
+            patch.object(run_inference, "AutoModelForCausalLM", model_loader),
+        ):
+            run_inference.load_model("checkpoint")
+
+        kwargs = model_loader.from_pretrained.call_args.kwargs
+        self.assertEqual(kwargs["attn_implementation"], "flash_attention_2")
+        self.assertNotIn("cross_attention_implementation", kwargs)
+
+    def test_explicit_cross_attention_override_is_forwarded(self):
+        processor_loader = MagicMock()
+        model_loader = MagicMock()
+
+        with (
+            patch.object(run_inference, "AutoProcessor", processor_loader),
+            patch.object(run_inference, "AutoModelForCausalLM", model_loader),
+        ):
+            run_inference.load_model(
+                "checkpoint",
+                cross_attention_implementation="flash_attention_3",
+            )
+
+        kwargs = model_loader.from_pretrained.call_args.kwargs
+        self.assertEqual(
+            kwargs["cross_attention_implementation"],
+            "flash_attention_3",
+        )
 
 
 class ResolveQueryMediaPathsTest(unittest.TestCase):
