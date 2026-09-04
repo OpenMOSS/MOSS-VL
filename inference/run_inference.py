@@ -89,22 +89,32 @@ def parse_args() -> argparse.Namespace:
         default=300.0,
         help="Timeout per query while waiting for offline_generate to finish.",
     )
+    parser.add_argument(
+        "--cross-attention-implementation",
+        default=None,
+        help="Optional cross-attention backend override provided by the checkpoint.",
+    )
     return parser.parse_args()
 
 
-def load_model(checkpoint: str):
+def load_model(
+    checkpoint: str,
+    cross_attention_implementation: str | None = None,
+):
     processor = AutoProcessor.from_pretrained(
         checkpoint,
         trust_remote_code=True,
         frame_extract_num_threads=1,
     )
-    model = AutoModelForCausalLM.from_pretrained(
-        checkpoint,
-        trust_remote_code=True,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-        attn_implementation="flash_attention_2",
-    )
+    model_kwargs = {
+        "trust_remote_code": True,
+        "device_map": "auto",
+        "torch_dtype": torch.bfloat16,
+        "attn_implementation": "flash_attention_2",
+    }
+    if cross_attention_implementation is not None:
+        model_kwargs["cross_attention_implementation"] = cross_attention_implementation
+    model = AutoModelForCausalLM.from_pretrained(checkpoint, **model_kwargs)
     return model, processor
 
 
@@ -690,7 +700,10 @@ def main() -> None:
     )
 
     queries = load_queries(input_path)
-    model, processor = load_model(checkpoint)
+    model, processor = load_model(
+        checkpoint,
+        cross_attention_implementation=args.cross_attention_implementation,
+    )
     output = run_queries_via_offline_generate(
         model,
         processor,

@@ -9,6 +9,10 @@ class ModelArguments:
     model_name_or_path: str = field(
         metadata={"help": "Path to the MOSS-VL checkpoint directory."},
     )
+    cross_attention_implementation: Optional[str] = field(
+        default=None,
+        metadata={"help": "Optional cross-attention backend override."},
+    )
     tune_vision: bool = field(
         default=False,
         metadata={"help": "Whether to train the vision encoder."},

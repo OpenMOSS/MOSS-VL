@@ -98,11 +98,18 @@ def train() -> None:
     processor.tokenizer.padding_side = "right"
 
     # ---- Model -------------------------------------------------------
+    model_kwargs = {
+        "trust_remote_code": True,
+        "torch_dtype": torch.bfloat16,
+        "attn_implementation": "flash_attention_2",
+    }
+    if model_args.cross_attention_implementation is not None:
+        model_kwargs["cross_attention_implementation"] = (
+            model_args.cross_attention_implementation
+        )
     model = AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
-        trust_remote_code=True,
-        torch_dtype=torch.bfloat16,
-        attn_implementation="flash_attention_2",
+        **model_kwargs,
     )
     model.config.use_cache = False
 
