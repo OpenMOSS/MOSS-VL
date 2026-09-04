@@ -2,6 +2,17 @@
 
 Supervised fine-tuning framework for MOSS-VL, built on HuggingFace `transformers.Trainer`.
 
+## Recommended Training Frameworks
+
+The code in this directory is a **minimal training reference**: it covers basic full-parameter and LoRA SFT with a simple data pipeline, and is mainly intended to demonstrate the training contract of MOSS-VL (data format, label masking, module freezing).
+
+For production or domain-specific (vertical) fine-tuning, we recommend using one of the following mature frameworks, both of which support MOSS-VL as a first-class model:
+
+- [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) — unified fine-tuning framework for 100+ LLMs/VLMs. MOSS-VL is supported out of the box with LoRA, freeze, and full-parameter workflows, validated checkpoint save/resume/merge, and ready-made example configs (see [PR #10708](https://github.com/hiyouga/LLaMA-Factory/pull/10708)). Step-by-step guides: [English tutorial](https://blog.llamafactory.net/en/posts/moss_vl_finetuning/) | [Chinese tutorial](https://blog.llamafactory.net/posts/moss_vl_finetuning/).
+- [ms-swift](https://github.com/modelscope/ms-swift) — ModelScope's training and inference framework. MOSS-VL works with `swift sft` (LoRA or full-parameter) and `swift infer` for image/video, including multi-image, multi-video, mixed-media, and multi-turn data, with fine-grained `freeze_vit` / `freeze_aligner` / `freeze_llm` control (see [PR #9944](https://github.com/modelscope/ms-swift/pull/9944)).
+
+Both frameworks handle MOSS-VL's cross-attention masks, media ordering, and module boundaries natively, and have been validated with real training runs (checkpoint resume, adapter merging, standalone reloading).
+
 ## Directory Structure
 
 ```
