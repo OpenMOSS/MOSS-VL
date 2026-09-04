@@ -184,20 +184,22 @@ features here.
 
 ## Requirements
 
-This specialized version is developed and validated for FA3 training on NVIDIA
-Hopper GPUs.
+This specialized version is developed for MOSS-VL training, with its operators
+validated on NVIDIA Ampere and Hopper GPUs.
 
-- NVIDIA H100, H800, or H200 class GPU
+- NVIDIA A100 or A800 (SM80), or H100, H800, or H200 (SM90)
 - CUDA 12.3 or newer
 - CUDA 12.8 recommended
 - PyTorch with CUDA support
 - `packaging`, `psutil`, `ninja`, and `einops`
 - Linux
 
-The current validation environment uses an NVIDIA H200, CUDA 12.8, and PyTorch
-2.8. With PyTorch versions below 2.9, `hopper/setup.py` builds
-`flash_api.cpp`. PyTorch 2.9 or newer selects `flash_api_stable.cpp`; that stable
-ABI build path should be validated separately in a PyTorch 2.9+ environment.
+SM80 supports FP16 and BF16 with matching Q/K/V head dimensions. FP8, `q_v`,
+and different Q/K and V head dimensions remain Hopper-only.
+
+The operator validation environments include H200 with CUDA 12.8 and PyTorch
+2.8, and A800 80GB with CUDA 13.0 and PyTorch 2.11. PyTorch versions below 2.9
+build `flash_api.cpp`; PyTorch 2.9 or newer selects `flash_api_stable.cpp`.
 
 ## Build and Installation
 
@@ -209,6 +211,19 @@ Build the extension in place for development:
 cd hopper
 MAX_JOBS=8 python setup.py build_ext --inplace
 ```
+
+An architecture-specific build can omit kernels for the other GPU family:
+
+```bash
+# Ampere/Ada only. This also disables Hopper-only FP8 kernels.
+FLASH_ATTENTION_DISABLE_SM90=TRUE MAX_JOBS=8 python setup.py build_ext --inplace
+
+# Hopper only.
+FLASH_ATTENTION_DISABLE_SM80=TRUE MAX_JOBS=8 python setup.py build_ext --inplace
+```
+
+`FLASH_ATTENTION_DISABLE_SM80` and `FLASH_ATTENTION_DISABLE_SM90` cannot both
+be enabled.
 
 Or install the specialized FA3 package into the active environment:
 
@@ -245,7 +260,8 @@ pytest -q \
 The focused suite covers API compatibility, forward/backward numerical parity,
 non-monotonic boundaries, fully masked rows, variable-length inputs, packed QKV,
 GQA, KV-cache execution, scheduler metadata, package exports, and mask
-reconstruction. The current suite contains 261 tests.
+reconstruction. The current suite contains 265 tests. On SM80, 9
+SM90-specific regression tests are skipped.
 
 Run the MOSS-VL-shaped parity utility with:
 

@@ -65,6 +65,14 @@ DISABLE_HDIM128 = os.getenv("FLASH_ATTENTION_DISABLE_HDIM128", "FALSE") == "TRUE
 DISABLE_HDIM192 = os.getenv("FLASH_ATTENTION_DISABLE_HDIM192", "FALSE") == "TRUE"
 DISABLE_HDIM256 = os.getenv("FLASH_ATTENTION_DISABLE_HDIM256", "FALSE") == "TRUE"
 DISABLE_SM8x = os.getenv("FLASH_ATTENTION_DISABLE_SM80", "FALSE") == "TRUE"
+DISABLE_SM90 = os.getenv("FLASH_ATTENTION_DISABLE_SM90", "FALSE") == "TRUE"
+
+if DISABLE_SM8x and DISABLE_SM90:
+    raise RuntimeError(
+        "FLASH_ATTENTION_DISABLE_SM80 and FLASH_ATTENTION_DISABLE_SM90 cannot both be TRUE"
+    )
+if DISABLE_SM90:
+    DISABLE_FP8 = True
 
 ENABLE_VCOLMAJOR = os.getenv("FLASH_ATTENTION_ENABLE_VCOLMAJOR", "FALSE") == "TRUE"
 
@@ -106,6 +114,7 @@ def create_build_config_file():
             "FLASHATTENTION_DISABLE_HDIM192": DISABLE_HDIM192,
             "FLASHATTENTION_DISABLE_HDIM256": DISABLE_HDIM256,
             "FLASHATTENTION_DISABLE_SM8x": DISABLE_SM8x,
+            "FLASHATTENTION_DISABLE_SM90": DISABLE_SM90,
             "FLASHATTENTION_ENABLE_VCOLMAJOR": ENABLE_VCOLMAJOR,
             "FLASH_ATTENTION_DISABLE_HDIMDIFF64": DISABLE_HDIMDIFF64,
             "FLASH_ATTENTION_DISABLE_HDIMDIFF192": DISABLE_HDIMDIFF192,
@@ -251,7 +260,12 @@ def _write_ninja_file(path,
             elif source_file.endswith('_sm100.cu'):
                 rule = 'cuda_compile_sm100'
             else:
-                rule = 'cuda_compile_sm80_sm90'
+                if DISABLE_SM90:
+                    rule = 'cuda_compile_sm80'
+                elif DISABLE_SM8x:
+                    rule = 'cuda_compile'
+                else:
+                    rule = 'cuda_compile_sm80_sm90'
         else:
             rule = 'compile'
         if IS_WINDOWS:
@@ -530,6 +544,7 @@ if not SKIP_CUDA_BUILD:
         + (["-DFLASHATTENTION_DISABLE_HDIM192"] if DISABLE_HDIM192 else [])
         + (["-DFLASHATTENTION_DISABLE_HDIM256"] if DISABLE_HDIM256 else [])
         + (["-DFLASHATTENTION_DISABLE_SM8x"] if DISABLE_SM8x else [])
+        + (["-DFLASHATTENTION_DISABLE_SM90"] if DISABLE_SM90 else [])
         + (["-DFLASHATTENTION_ENABLE_VCOLMAJOR"] if ENABLE_VCOLMAJOR else [])
         + (["-DFLASHATTENTION_DISABLE_HDIMDIFF64"] if DISABLE_HDIMDIFF64 else [])
         + (["-DFLASHATTENTION_DISABLE_HDIMDIFF192"] if DISABLE_HDIMDIFF192 else [])
@@ -601,8 +616,10 @@ if not SKIP_CUDA_BUILD:
 
     sources = (
         [flash_api_source]
-        + (sources_fwd_sm80 if not DISABLE_SM8x else []) + sources_fwd_sm90
-        + (sources_bwd_sm80 if not DISABLE_SM8x else []) + sources_bwd_sm90
+        + (sources_fwd_sm80 if not DISABLE_SM8x else [])
+        + (sources_fwd_sm90 if not DISABLE_SM90 else [])
+        + (sources_bwd_sm80 if not DISABLE_SM8x else [])
+        + (sources_bwd_sm90 if not DISABLE_SM90 else [])
     )
     if not DISABLE_SPLIT:
         sources += ["flash_fwd_combine.cu"]

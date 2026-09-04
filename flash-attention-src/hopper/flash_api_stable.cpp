@@ -76,6 +76,20 @@ cudaDeviceProp* get_device_prop() {
   std::call_once(device_flags[device_index], initDeviceProperty, device_index);
   return &device_properties[device_index];
 }
+
+inline void check_supported_arch(int major) {
+#ifdef FLASHATTENTION_DISABLE_SM8x
+    STD_TORCH_CHECK(major == 9,
+                    "This FlashAttention build was compiled with FLASH_ATTENTION_DISABLE_SM80=TRUE "
+                    "and only supports Hopper GPUs (SM90).");
+#elif defined(FLASHATTENTION_DISABLE_SM90)
+    STD_TORCH_CHECK(major == 8,
+                    "This FlashAttention build was compiled with FLASH_ATTENTION_DISABLE_SM90=TRUE "
+                    "and only supports Ampere/Ada GPUs (SM8x).");
+#else
+    STD_TORCH_CHECK(major >= 8, "FlashAttention only supports Ampere GPUs or newer.");
+#endif
+}
 } // anonymous namespace
 
 
@@ -637,6 +651,10 @@ mha_fwd_get_scheduler_metadata(
         int64_t sm_margin,
         std::optional<Tensor> cross_kv_boundary_) {
 
+    auto device_guard = make_device_guard(seqused_k);
+    auto dprops = get_device_prop();
+    check_supported_arch(dprops->major);
+
     STD_TORCH_CHECK(qkv_dtype == torch::headeronly::ScalarType::Half || qkv_dtype == torch::headeronly::ScalarType::BFloat16 || qkv_dtype == torch::headeronly::ScalarType::Float8_e4m3fn,
                 "FlashAttention only supports fp16, bf16, and fp8_e4m3 data type");
     STD_TORCH_CHECK(num_heads % num_heads_k == 0, "Number of heads in key/value must divide number of heads in query");
@@ -700,7 +718,6 @@ mha_fwd_get_scheduler_metadata(
             params.window_size_right = 0;
         }
     }
-    auto dprops = get_device_prop();
     params.arch = dprops->major * 10 + dprops->minor;
     params.num_sm = dprops->multiProcessorCount - sm_margin;
     params.softcap = has_softcap ? 1.0f : 0.0f;
@@ -718,10 +735,6 @@ mha_fwd_get_scheduler_metadata(
     params.pack_gqa = pack_gqa_.has_value() ? pack_gqa_.value() : get_pack_gqa(params);
 
     bool is_varlen = true;
-
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_device_guard(seqused_k);
 
     // This needs to be set after get_num_splits
     Tensor tile_count_semaphore;  // Contains the semaphore and optionally num_splits_dynamic
@@ -817,9 +830,9 @@ mha_fwd(Tensor q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seqlens_
         std::optional<Tensor> cross_kv_boundary_  // (b, s_q) or (total_q,). Per-query KV boundary for staircase mask.
         ) {
 
+    auto device_guard = make_device_guard(q);
     auto dprops = get_device_prop();
-    bool is_sm8x = dprops->major >= 8;
-    STD_TORCH_CHECK(is_sm8x, "FlashAttention only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto q_type = q.scalar_type();
     STD_TORCH_CHECK(q_type == torch::headeronly::ScalarType::Half || q_type == torch::headeronly::ScalarType::BFloat16 || q_type == torch::headeronly::ScalarType::Float8_e4m3fn,
@@ -987,10 +1000,6 @@ mha_fwd(Tensor q,   // (b, s_q, h, d) or (total_q, h, d) if there is cu_seqlens_
     int const head_size_v_rounded = head_size_v == head_size ? head_size_rounded : round_up_headdimv(head_size_v);
     int const seqlen_q_rounded = round_multiple(seqlen_q, 128);
     int const seqlen_k_rounded = round_multiple(seqlen_k, 128);
-
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_device_guard(q);
 
     Tensor softmax_lse;
     if (!is_varlen_q) {
@@ -1419,9 +1428,9 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> mha_bwd(
         STD_TORCH_CHECK(false, "This flash attention build does not support backward.");
     #endif
 
+    auto device_guard = make_device_guard(q);
     auto dprops = get_device_prop();
-    bool is_sm8x = dprops->major >= 8;
-    STD_TORCH_CHECK(is_sm8x, "FlashAttention only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto q_type = q.scalar_type();
     STD_TORCH_CHECK(q_type == torch::headeronly::ScalarType::Half || q_type == torch::headeronly::ScalarType::BFloat16,
@@ -1598,10 +1607,6 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> mha_bwd(
         dv = torch::stable::empty_like(v);
     }
 
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_device_guard(q);
-
     // auto opts = q.options();
     // Need softmax_d to have total_q_padded_rounded since we want its address to be aligned by 16/8 bytes for TMA / LDG.64
     Tensor softmax_d, softmax_lse_log2;
@@ -1722,9 +1727,9 @@ mha_combine(Tensor out_partial,         // num_splits x batch_size x seqlen x nu
             std::optional<torch::headeronly::ScalarType> out_dtype_
             ) {
 
+    auto device_guard = make_device_guard(out_partial);
     auto dprops = get_device_prop();
-    bool is_sm8x = dprops->major >= 8;
-    STD_TORCH_CHECK(is_sm8x, "Attention combine function only supports Ampere GPUs or newer.");
+    check_supported_arch(dprops->major);
 
     auto out_partial_type = out_partial.scalar_type();
     STD_TORCH_CHECK(out_partial_type == torch::headeronly::ScalarType::Float, "Attention combine function only support fp32 data type");
@@ -1773,10 +1778,6 @@ mha_combine(Tensor out_partial,         // num_splits x batch_size x seqlen x nu
     } else {
         out = torch::stable::new_empty(out_partial, {batch_size, seqlen, num_heads, head_size}, std::make_optional(out_type));
     }
-
-    // Otherwise the kernel will be launched from cuda:0 device
-    // Cast to char to avoid compiler warning about narrowing
-    auto device_guard = make_device_guard(out_partial);
 
     auto softmax_lse = torch::stable::new_empty(out_partial, {batch_size, num_heads, seqlen}, std::make_optional(torch::headeronly::ScalarType::Float));
     softmax_lse = torch::stable::transpose(softmax_lse, 1, 2);

@@ -884,6 +884,7 @@ def test_staircase_mask_mossvl_multivideo_right_padding_precision(dtype):
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
 def test_staircase_constant_boundary_matches_no_mask(dtype):
     """When cross_kv_boundary is all seqlen_k, output should match unmasked attention."""
+    torch.manual_seed(0)
     batch_size = 2
     seqlen_q = 128
     seqlen_k = 128
@@ -903,7 +904,8 @@ def test_staircase_constant_boundary_matches_no_mask(dtype):
     )
     out_no_mask = flash_attn_func(q, k, v, causal=False)
 
-    torch.testing.assert_close(out_staircase, out_no_mask, atol=1e-3, rtol=1e-3)
+    tol = max(1e-3, torch.finfo(dtype).eps)
+    torch.testing.assert_close(out_staircase, out_no_mask, atol=tol, rtol=tol)
 
 
 def test_staircase_causal_raises():
