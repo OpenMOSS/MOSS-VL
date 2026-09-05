@@ -731,6 +731,7 @@ def create_service_app(model, processor, default_args: argparse.Namespace):
                         chunk = await asyncio.to_thread(session.poll_output, 0.1)
                         if chunk is not None:
                             await send_json({"type": "output", "text": chunk})
+                            continue
                         if not session.active:
                             await send_json({"type": "session_end"})
                             stop_signal.set()
