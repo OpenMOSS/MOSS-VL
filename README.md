@@ -17,6 +17,8 @@
     <a href="https://paperswithcode.co/api/v1/papers/2608.15045/leaderboard-badge-link?eval=25850"><img src="https://paperswithcode.co/api/v1/papers/2608.15045/leaderboard-badge.svg?eval=25850&live=1" alt="Papers with Code: #3 on TOMATO"/></a>
 </p>
 
+**Start here:** [Try the demo](https://huggingface.co/spaces/OpenMOSS-Team/MOSS-VL) · [Quick start](#-quick-start) · [Real-time inference](#real-time-inference) · [Offline inference](#offline-inference) · [Model weights](https://huggingface.co/collections/OpenMOSS-Team/moss-vl)
+
 https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 
 # MOSS-VL

@@ -17,6 +17,8 @@
     <a href="https://paperswithcode.co/api/v1/papers/2608.15045/leaderboard-badge-link?eval=25850"><img src="https://paperswithcode.co/api/v1/papers/2608.15045/leaderboard-badge.svg?eval=25850&live=1" alt="Papers with Code: #3 on TOMATO"/></a>
 </p>
 
+**从这里开始：** [在线体验](https://huggingface.co/spaces/OpenMOSS-Team/MOSS-VL) · [快速上手](#-快速上手) · [实时推理](#实时推理) · [离线推理](#离线推理) · [模型下载](https://huggingface.co/collections/OpenMOSS-Team/moss-vl)
+
 https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 
 # MOSS-VL
