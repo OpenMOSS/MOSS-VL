@@ -1286,15 +1286,6 @@ class MossVLForConditionalGeneration(nn.Module):
         if forward_batch.encoder_lens is None or forward_batch.encoder_lens.max() == 0:
             return
 
-        # Skip custom mask on non-flashinfer backends (e.g. ascend NPU).
-        # The ascend backend does not support FlashInfer's packed custom mask.
-        # Without the mask, all vision tokens are visible to all text tokens
-        # during prefill cross-attention (standard cross-attention behavior).
-        server_args = get_global_server_args()
-        prefill_backend, _ = server_args.get_attention_backends()
-        if prefill_backend != "flashinfer":
-            return
-
         custom_mask = self._build_cross_attention_custom_mask(forward_batch)
         if custom_mask is not None:
             forward_batch.cross_attention_custom_mask = custom_mask
