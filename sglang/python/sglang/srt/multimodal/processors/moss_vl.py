@@ -46,6 +46,20 @@ class MossVLImageProcessor(SGLangBaseProcessor):
         if pixel_values is None:
             return []
 
+        # The HF AutoProcessor unconditionally produces a placeholder
+        # pixel_values (shape [64, 768], grid_thw [1,8,8]) even for
+        # text-only inputs that contain no image tokens.  This causes
+        # _get_encoder_len to compute a non-zero encoder length, and
+        # pad_input_ids to prepend 17+ garbage pad tokens to the
+        # sequence — corrupting every decode step's attention context
+        # and collapsing generation into repetition / early-EOS.
+        # Guard: only build an image item when the input_ids actually
+        # contain the model's image_token_id.
+        if self.image_token_id is not None:
+            ids_flat = input_ids.flatten().tolist() if isinstance(input_ids, torch.Tensor) else list(input_ids)
+            if self.image_token_id not in ids_flat:
+                return []
+
         item = MultimodalDataItem(
             modality=Modality.IMAGE,
             feature=pixel_values,

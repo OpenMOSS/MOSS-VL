@@ -252,7 +252,9 @@ class SchedulerDllmMixin:
                     break
 
             # Prepare and add request
-            req.init_next_round_input(self.tree_cache)
+            req.init_next_round_input(
+                self.tree_cache, model_config=self.model_config
+            )
             res = adder.add_one_req(
                 req,
                 has_chunked_req=True,

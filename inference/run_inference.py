@@ -2,16 +2,22 @@ from __future__ import annotations
 
 import argparse
 import json
+import pathlib
 import queue
 import re
+import sys
 import time
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, Iterable, List
 from urllib.parse import urlparse
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import torch
 from transformers import AutoModelForCausalLM, AutoProcessor
+
+import device_utils
 
 
 IMAGE_MEDIA_DEFAULTS: Dict[str, Any] = {

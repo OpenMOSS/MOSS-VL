@@ -263,20 +263,14 @@ class MRotaryEmbedding(RotaryEmbedding):
         assert (
             fused_set_kv_buffer_arg is None
         ), "fused_set_kv_buffer_arg is not supported for npu implementation"
-        if query.shape[1] > 4096:
-            return self.forward_native(positions, query, key, fused_set_kv_buffer_arg)
-        rotary_mode = "half" if self.is_neox_style else "interleave"
-        mrope_section = [0, 0, 0]
-        query_out, key_out = torch_npu.npu_mrope(
-            positions,
-            query,
-            key,
-            self.cos_sin_cache,
-            self.head_size,
-            mrope_section=mrope_section,
-            rotary_mode=rotary_mode,
-        )
-        return query_out, key_out
+        # torch_npu.npu_mrope hardcodes mrope_section=[0,0,0] and ignores
+        # mrope_interleaved, corrupting rotary embeddings for any multimodal
+        # prompt with per-axis positions.  Mirror forward_cuda: use the
+        # triton fused kernel for 2D+section inputs, fall back to native
+        # otherwise (text-only / no section).
+        if positions.ndim == 2 and self.mrope_section:
+            return self.forward_triton(positions, query, key)
+        return self.forward_native(positions, query, key, fused_set_kv_buffer_arg)
 
     @staticmethod
     def get_rope_index(

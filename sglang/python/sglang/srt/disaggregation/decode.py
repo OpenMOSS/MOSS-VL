@@ -1308,7 +1308,9 @@ class SchedulerDisaggregationDecodeMixin:
             # we can only add at least `num_not_used_batch` new batch to the running queue
             if i < num_not_used_batch:
                 can_run_list.append(req)
-                req.init_next_round_input(self.tree_cache)
+                req.init_next_round_input(
+                    self.tree_cache, model_config=self.model_config
+                )
             else:
                 waiting_queue.append(req)
 

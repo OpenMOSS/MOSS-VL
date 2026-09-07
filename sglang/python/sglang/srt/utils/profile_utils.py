@@ -22,7 +22,12 @@ if _is_npu:
         ["profiler.ProfilerActivity.CUDA", torch_npu.profiler.ProfilerActivity.NPU],
         ["profiler.ProfilerActivity.CPU", torch_npu.profiler.ProfilerActivity.CPU],
     ]
-    torch_npu._apply_patches(patches)
+    # torch-npu 2.8: _apply_patches(patches); 2.10+: renamed to
+    # _apply_all_patches() with no args (profiler hooks auto-applied).
+    if hasattr(torch_npu, "_apply_patches"):
+        torch_npu._apply_patches(patches)
+    elif hasattr(torch_npu, "_apply_all_patches"):
+        torch_npu._apply_all_patches()
 
 logger = logging.getLogger(__name__)
 
