@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import Optional
 
 import torch
 from torch.nn.functional import scaled_dot_product_attention
@@ -35,7 +36,9 @@ class AscendTorchNativeAttnBackend:
 
         if attn_mask is not None:
             if attn_mask.dtype == torch.bool:
-                attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+                attn_bias = attn_bias.masked_fill(
+                    attn_mask.logical_not(), float("-inf")
+                )
             else:
                 attn_bias = attn_mask + attn_bias
 
@@ -50,7 +53,10 @@ class AscendTorchNativeAttnBackend:
                 attn_weight = logit_cap * torch.tanh(attn_weight / logit_cap)
 
         attn_weight += attn_bias
-        attn_weight = torch.softmax(attn_weight, dim=-1)
+        # SDPA returns zero for fully masked rows, including text before any image.
+        fully_masked = torch.isneginf(attn_bias).all(dim=-1, keepdim=True)
+        attn_weight = torch.softmax(attn_weight.masked_fill(fully_masked, 0), dim=-1)
+        attn_weight = attn_weight.masked_fill(fully_masked, 0)
         return attn_weight @ value
 
     def run_sdpa_forward_extend(
@@ -169,6 +175,7 @@ class AscendTorchNativeAttnBackend:
                             enable_gqa=enable_gqa,
                             scale=scaling,
                             is_causal=False,
+                            attn_mask=per_req_attn_mask,
                             logit_cap=logit_cap,
                             logit_capping_method=logit_capping_method,
                         )

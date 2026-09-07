@@ -11,16 +11,36 @@ torch.bfloat16 = object()
 transformers = types.ModuleType("transformers")
 transformers.AutoModelForCausalLM = object()
 transformers.AutoProcessor = object()
+device_utils = types.ModuleType("device_utils")
+device_utils.get_default_attn_impl = lambda: "flash_attention_2"
 
 module_path = Path(__file__).resolve().parents[1] / "run_inference.py"
 module_spec = importlib.util.spec_from_file_location("run_inference", module_path)
 run_inference = importlib.util.module_from_spec(module_spec)
-with patch.dict(sys.modules, {"torch": torch, "transformers": transformers}):
+with patch.dict(
+    sys.modules,
+    {"torch": torch, "transformers": transformers, "device_utils": device_utils},
+):
     module_spec.loader.exec_module(run_inference)
 resolve_query_media_paths = run_inference.resolve_query_media_paths
 
 
 class LoadModelTest(unittest.TestCase):
+    def test_npu_backend_preserves_cross_attention_override(self):
+        model_loader = MagicMock()
+        with (
+            patch.object(run_inference, "AutoProcessor", MagicMock()),
+            patch.object(run_inference, "AutoModelForCausalLM", model_loader),
+            patch.object(device_utils, "get_default_attn_impl", return_value="eager"),
+        ):
+            run_inference.load_model(
+                "checkpoint", cross_attention_implementation="sdpa"
+            )
+
+        kwargs = model_loader.from_pretrained.call_args.kwargs
+        self.assertEqual(kwargs["attn_implementation"], "eager")
+        self.assertEqual(kwargs["cross_attention_implementation"], "sdpa")
+
     def test_default_does_not_pass_cross_attention_override(self):
         processor_loader = MagicMock()
         model_loader = MagicMock()
@@ -95,9 +115,7 @@ class ResolveQueryMediaPathsTest(unittest.TestCase):
 
         self.assertEqual(resolved["images"], [image_url])
         self.assertEqual(resolved["messages"][0]["content"][0]["image"], image_url)
-        self.assertEqual(
-            resolved["messages"][0]["content"][1]["image_url"], image_url
-        )
+        self.assertEqual(resolved["messages"][0]["content"][1]["image_url"], image_url)
 
     def test_resolves_local_image_references(self):
         base_dir = Path("/tmp/queries")

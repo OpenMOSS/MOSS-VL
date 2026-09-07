@@ -183,6 +183,9 @@ class Qwen3Attention(nn.Module):
         return q, k, v
 
     def forward_prepare_npu(self, positions, hidden_states, forward_batch):
+        if split_qkv_rmsnorm_rope is None:
+            return self.forward_prepare_native(positions, hidden_states)
+
         qkv, _ = self.qkv_proj(hidden_states)
 
         if self.attn.layer_id == forward_batch.token_to_kv_pool.start_layer:

@@ -116,7 +116,7 @@ def load_model(
         "trust_remote_code": True,
         "device_map": "auto",
         "torch_dtype": torch.bfloat16,
-        "attn_implementation": "flash_attention_2",
+        "attn_implementation": device_utils.get_default_attn_impl(),
     }
     if cross_attention_implementation is not None:
         model_kwargs["cross_attention_implementation"] = cross_attention_implementation

@@ -2040,11 +2040,6 @@ class ServerArgs:
                     "attention backend for cross-attention custom mask support."
                 )
             else:
-                logger.warning(
-                    "MossVLForConditionalGeneration on NPU: cross-attention custom "
-                    "mask is not supported on ascend backend. All vision tokens "
-                    "will be visible to all text tokens during prefill."
-                )
                 # Containment for a deterministic-repeatability bug: with the
                 # Ascend paged KV cache (default page_size=128), radix cache
                 # inserts encoder (vision) KV into the tree on request finish.
