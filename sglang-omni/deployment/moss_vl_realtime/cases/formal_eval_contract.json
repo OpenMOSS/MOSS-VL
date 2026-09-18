@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "cd067_sbpro_L2_stream_000122": {
+      "mode": "contains_all",
+      "required_text": [
+        "Ski down from the hill"
+      ]
+    },
+    "cd067_sbpro_L2_stream_000530": {
+      "mode": "exact",
+      "expected_text": "Pull open the stapler"
+    },
+    "cd067_pvqatv_L2_inject_004873": {
+      "mode": "contains_all",
+      "required_text": [
+        "keep the change"
+      ]
+    },
+    "cd067_omnimmipa_L2_pa_004765": {
+      "mode": "contains_all",
+      "required_text": [
+        "视频结尾的致谢名单",
+        "CAMERAS"
+      ]
+    }
+  }
+}

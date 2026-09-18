@@ -16,6 +16,16 @@ Supported input sources include:
 - synthetic frames for headless debugging
 - external JPEG or PNG frames over WebSocket
 
+## High-Performance Serving with SGLang-Omni
+
+The scripts in this directory are a reference implementation built directly on the Hugging Face runtime: one model process serves one active realtime session. For production deployments that must serve many concurrent realtime streams, use the vendored specialized backend in [`../sglang-omni/`](../sglang-omni/), synchronized from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime):
+
+- **Multi-stream concurrency**: dynamic multi-session scheduling serves several realtime video streams per replica (4 sessions by default), and data-parallel replicas (`--dp-size`) scale throughput further; tensor parallelism is also supported.
+- **Substantially faster inference**: incremental visual features and KV caching, decode CUDA Graphs, a 60-second sliding visual KV window, and bounded input queues.
+- **Persistent sessions**: prompt interruption, wake-up after silence, and text-history restoration across context limits.
+
+The SGLang-Omni backend loads the SGLang-format checkpoint `OpenMOSS-Team/MOSS-VL-Realtime-SGLANG`, runs in its own Python environment, and exposes a different WebSocket protocol (`/v1/video/realtime`). See [`../sglang-omni/README.md`](../sglang-omni/README.md) and its [realtime cookbook](../sglang-omni/docs/cookbook/moss_vl_realtime.md) for installation, launch, tests, and protocol details.
+
 ## Supported Checkpoint
 
 By default, `run_online_inference.py` loads the public Hugging Face checkpoint:
@@ -228,7 +238,7 @@ One WebSocket connection owns one realtime session. The supported messages are:
 | Server to client | `pong` / `stopping` / `session_end` | Connection and lifecycle state. |
 | Server to client | `error` | Request or inference error. |
 
-The example service accepts one active session per model instance. It has no authentication and binds to `127.0.0.1` unless `--host` is changed. For remote deployment, place it behind an authenticated reverse proxy with TLS and WebSocket upgrade support.
+The example service accepts one active session per model instance; for concurrent multi-session serving use the [SGLang-Omni backend](#high-performance-serving-with-sglang-omni). It has no authentication and binds to `127.0.0.1` unless `--host` is changed. For remote deployment, place it behind an authenticated reverse proxy with TLS and WebSocket upgrade support.
 
 Browser `MediaStream` objects are not sent directly. A browser should sample the camera or screen stream, encode each selected frame as JPEG or PNG, and send the metadata and binary image over the WebSocket connection. A high-frame-rate product can replace this transport with WebRTC while continuing to call `session.push_frame(...)` after decoding.
 

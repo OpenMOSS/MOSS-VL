@@ -1,0 +1,22 @@
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
+@@ -7,6 +7,8 @@
+
+
+ class AscendTorchNativeAttnBackend:
++    _moss_vl_torch_cross_attention_supported = True
++
+     def __init__(self):
+         pass
+
+@@ -182,7 +184,9 @@
+                 per_req_key = per_req_key.to(per_req_query.dtype)
+                 per_req_value = per_req_value.to(per_req_query.dtype)
+
+-            if logit_cap > 0:
++            # Ascend fused SDPA may reject custom masks. Cross-attention
++            # always uses the explicit torch path; self-attention is unchanged.
++            if logit_cap > 0 or is_cross_attention:
+                 per_req_out_redundant = (
+                     self.scaled_dot_product_attention_with_softcapping(
+                         per_req_query_redundant.unsqueeze(0),

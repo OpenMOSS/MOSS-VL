@@ -1,0 +1,100 @@
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
+@@ -38,7 +38,10 @@
+
+         if attn_mask is not None:
+             if attn_mask.dtype == torch.bool:
+-                attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
++                # The bias is (L, S); a 4-D broadcastable bool mask is folded
++                # to 2-D so NPU fused ops and masked_fill agree on shapes.
++                bool2d = attn_mask.reshape(L, S)
++                attn_bias.masked_fill_(bool2d.logical_not(), float("-inf"))
+             else:
+                 attn_bias = attn_mask + attn_bias
+
+@@ -95,11 +98,11 @@
+             scaling: float or None
+             enable_gqa: bool
+             causal: bool
+-            cross_attention_custom_mask: flattened per-request [Q, encoder KV]
+-                visibility entries; True/1 means visible, extend cross-attention only
+             sliding_window_size: int, -1 means no sliding window
+             full_to_swa_mapping: mapping from full pool index to SWA pool index,
+                 required for SWA layers to translate req_to_token indices
++            cross_attention_custom_mask: flattened per-request [Q, encoder KV]
++                visibility entries; True/1 means visible, extend cross-attention only
+
+         Returns:
+             output: [num_tokens, num_heads, head_size]
+@@ -145,8 +148,14 @@
+                 if is_cross_attention:
+                     atten_end_kv = int(encoder_lens[seq_idx].item())
+                 else:
++                    # The page-table row is [encoder slots | decoder slots]:
++                    # self-attention must read the *entire* decoder text KV
++                    # (prefix + this chunk), exactly like the decode path —
++                    # not just the last extend_seq_len_q cells, which alias
++                    # the oldest prefix slots once vision occupies the row
++                    # head.
+                     atten_start_kv = int(encoder_lens[seq_idx].item())
+-                    atten_end_kv = atten_start_kv + extend_seq_len_q
++                    atten_end_kv = atten_start_kv + seq_len_kv
+
+             is_swa_self_attn = (
+                 sliding_window_size is not None
+@@ -229,12 +238,28 @@
+                         per_req_query_redundant.unsqueeze(0),
+                         per_req_key.unsqueeze(0),
+                         per_req_value.unsqueeze(0),
+-                        attn_mask=per_req_mask,
+                         enable_gqa=enable_gqa,
+                         scale=scaling,
+                         is_causal=causal,
+                         logit_cap=logit_cap,
+                         logit_capping_method=logit_capping_method,
++                        attn_mask=per_req_mask,
++                    )
++                    .squeeze(0)
++                    .movedim(query.dim() - 2, 0)
++                )
++            elif is_cross_attention:
++                # The fused SDPA kernel rejects custom masks on NPU; use the
++                # pure-torch path so the frame-level visibility mask applies.
++                per_req_out_redundant = (
++                    self.scaled_dot_product_attention_with_softcapping(
++                        per_req_query_redundant.unsqueeze(0),
++                        per_req_key.unsqueeze(0),
++                        per_req_value.unsqueeze(0),
++                        enable_gqa=enable_gqa,
++                        scale=scaling,
++                        is_causal=causal,
++                        attn_mask=per_req_mask,
+                     )
+                     .squeeze(0)
+                     .movedim(query.dim() - 2, 0)
+@@ -245,7 +270,6 @@
+                         per_req_query_redundant.unsqueeze(0),
+                         per_req_key.unsqueeze(0),
+                         per_req_value.unsqueeze(0),
+-                        attn_mask=per_req_mask,
+                         enable_gqa=enable_gqa,
+                         scale=scaling,
+                         is_causal=causal,
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
+@@ -1105,12 +1105,14 @@
+         if layer.is_cross_attention and getattr(
+             forward_batch, "cross_attention_custom_mask", None
+         ) is not None:
++            # NOTE: is_context_parallel_extend() returns True for *any* EXTEND
++            # mode (its name is misleading), so it must NOT be an exclusion
++            # here — otherwise every MOSS-VL frame round would be rejected.
+             if (
+                 self.use_fia or self.use_fa or self.use_mla or self.is_dllm_model
+                 or topk_indices is not None or sinks is not None
+                 or forward_batch.forward_mode.is_target_verify()
+                 or forward_batch.forward_mode.is_draft_extend_v2()
+-                or forward_batch.forward_mode.is_context_parallel_extend()
+             ):
+                 raise NotImplementedError(
+                     "MOSS-VL frame visibility requires the native Ascend SDPA extend path"

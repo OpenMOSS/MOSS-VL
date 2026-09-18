@@ -1,0 +1,4 @@
+# Keep compiler/CRT/NVVM on the same CUDA minor as the locked Torch runtime.
+nvidia-cuda-nvcc==13.0.88
+nvidia-cuda-crt==13.0.88
+nvidia-nvvm==13.0.88

@@ -1,0 +1,158 @@
+--- a/sglang/srt/models/moss_vl.py
++++ b/sglang/srt/models/moss_vl.py
+@@ -316,8 +316,14 @@
+             wpos_ids = wpos_ids.permute(0, 2, 1, 3).flatten()
+             pos_ids.append(torch.stack([hpos_ids, wpos_ids], dim=-1).repeat(t, 1))
+         pos_ids = torch.cat(pos_ids, dim=0)
+-        max_grid_size = grid_thw[:, 1:].max()
+-        rotary_pos_emb_full = self.rotary_pos_emb(max_grid_size)
++        max_grid_size = int(grid_thw[:, 1:].max())
++        inv_freq = getattr(self.rotary_pos_emb, "inv_freq", None)
++        if inv_freq is not None and inv_freq.device != self.device:
++            self.rotary_pos_emb.inv_freq = inv_freq.to(self.device)
++        pos_ids = pos_ids.to(self.device)
++        rotary_pos_emb_full = self.rotary_pos_emb(
++            torch.arange(max_grid_size, device=self.device)
++        )
+         rotary_pos_emb = rotary_pos_emb_full[pos_ids].flatten(1)
+         return rotary_pos_emb
+
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
+@@ -74,6 +74,7 @@
+         full_to_swa_mapping: Optional[torch.Tensor] = None,
+         logit_cap: float = 0.0,
+         logit_capping_method: str = "tanh",
++        cross_attention_custom_mask: Optional[torch.Tensor] = None,
+     ):
+         """Run the extend forward by using torch native sdpa op.
+
+@@ -103,6 +104,22 @@
+         assert seq_lens.shape[0] == extend_prefix_lens.shape[0]
+         assert seq_lens.shape[0] == extend_seq_lens.shape[0]
+
++        if cross_attention_custom_mask is not None:
++            if not is_cross_attention or encoder_lens is None:
++                raise ValueError("frame visibility mask requires cross-attention encoder lengths")
++            expected = int(
++                (extend_seq_lens.to(torch.int64) * encoder_lens.to(torch.int64)).sum().item()
++            )
++            if (
++                cross_attention_custom_mask.ndim != 1
++                or cross_attention_custom_mask.numel() != expected
++            ):
++                raise ValueError("cross-attention mask does not match request Q/KV lengths")
++            cross_attention_custom_mask = cross_attention_custom_mask.to(
++                device=query.device, dtype=torch.bool
++            )
++        mask_offset = 0
++
+         # [num_tokens, num_heads, head_size] -> [num_heads, num_tokens, head_size]
+         query = query.movedim(0, query.dim() - 2)
+
+@@ -140,15 +157,29 @@
+                 )
+
+             per_req_query = query[:, start_q:end_q, :]
+-            query_start_idx = max(prefill_seq_len_q - atten_start_kv, 0)
+             seq_len_kv = atten_end_kv - atten_start_kv
+-            per_req_query_redundant = torch.zeros(
+-                (per_req_query.shape[0], seq_len_kv, per_req_query.shape[2]),
+-                dtype=per_req_query.dtype,
+-                device=per_req_query.device,
+-            )
+-
+-            per_req_query_redundant[:, query_start_idx:, :] = per_req_query
++            per_req_mask = None
++            if cross_attention_custom_mask is not None:
++                mask_size = extend_seq_len_q * seq_len_kv
++                per_req_mask = cross_attention_custom_mask[
++                    mask_offset : mask_offset + mask_size
++                ].reshape(extend_seq_len_q, seq_len_kv)
++                mask_offset += mask_size
++            if is_cross_attention and seq_len_kv == 0:
++                output[start_q:end_q].zero_()
++                start_q, start_kv = end_q, end_kv
++                continue
++            if is_cross_attention:
++                query_start_idx = 0
++                per_req_query_redundant = per_req_query
++            else:
++                query_start_idx = max(prefill_seq_len_q - atten_start_kv, 0)
++                per_req_query_redundant = torch.zeros(
++                    (per_req_query.shape[0], seq_len_kv, per_req_query.shape[2]),
++                    dtype=per_req_query.dtype,
++                    device=per_req_query.device,
++                )
++                per_req_query_redundant[:, query_start_idx:, :] = per_req_query
+
+             # get key and value from cache. per_req_tokens contains the kv cache
+             # index for each token in the sequence.
+@@ -172,6 +203,7 @@
+                         per_req_query_redundant.unsqueeze(0),
+                         per_req_key.unsqueeze(0),
+                         per_req_value.unsqueeze(0),
++                        attn_mask=per_req_mask,
+                         enable_gqa=enable_gqa,
+                         scale=scaling,
+                         is_causal=causal,
+@@ -187,12 +219,17 @@
+                         per_req_query_redundant.unsqueeze(0),
+                         per_req_key.unsqueeze(0),
+                         per_req_value.unsqueeze(0),
++                        attn_mask=per_req_mask,
+                         enable_gqa=enable_gqa,
+                         scale=scaling,
+                         is_causal=causal,
+                     )
+                     .squeeze(0)
+                     .movedim(query.dim() - 2, 0)
++                )
++            if per_req_mask is not None:
++                per_req_out_redundant = per_req_out_redundant.masked_fill(
++                    ~per_req_mask.any(dim=-1)[:, None, None], 0.0
+                 )
+             output[start_q:end_q, :, :] = per_req_out_redundant[
+                 query_start_idx : query_start_idx + extend_seq_len_q, :, :
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
+@@ -275,6 +275,7 @@
+
+
+ class AscendAttnBackend(AttentionBackend):
++    _moss_vl_visibility_mask_supported = True
+
+     def __init__(self, model_runner: ModelRunner, speculative_step_id: int = 0):
+         super().__init__()
+@@ -1088,6 +1089,19 @@
+         sinks: Optional[torch.Tensor] = None,
+         slopes: Optional[torch.Tensor] = None,
+     ):
++        if layer.is_cross_attention and getattr(
++            forward_batch, "cross_attention_custom_mask", None
++        ) is not None:
++            if (
++                self.use_fia or self.use_mla or self.is_dllm_model
++                or topk_indices is not None or sinks is not None
++                or forward_batch.forward_mode.is_target_verify()
++                or forward_batch.forward_mode.is_draft_extend_v2()
++                or forward_batch.forward_mode.is_context_parallel_extend()
++            ):
++                raise NotImplementedError(
++                    "MOSS-VL frame visibility requires the native Ascend SDPA extend path"
++                )
+         if is_mla_preprocess_enabled() and self.use_mla:
+             # MLAPO and MLAPROLOG do save kv_cache
+             save_kv_cache = False
+@@ -1480,6 +1494,11 @@
+                         scaling=layer.scaling,
+                         enable_gqa=use_gqa,
+                         causal=causal,
++                        cross_attention_custom_mask=(
++                            getattr(forward_batch, "cross_attention_custom_mask", None)
++                            if layer.is_cross_attention
++                            else None
++                        ),
+                         sliding_window_size=layer.sliding_window_size,
+                         full_to_swa_mapping=(
+                             self.full_to_swa_index_mapping

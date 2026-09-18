@@ -1,0 +1,139 @@
+name: ASR CI
+
+on:
+  workflow_call:
+    inputs:
+      asr_ci_model:
+        description: ASR CI model preset selected by the parent pick-asr-model job.
+        type: string
+        required: false
+        default: fun
+      omni_ci_home:
+        description: PR-scoped CI home from the parent omni-ci workflow.
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+env:
+  OMNI_CI_HOME: >-
+    ${{ inputs.omni_ci_home != ''
+        && inputs.omni_ci_home
+        || format('/data/omni-ci/run-{0}', github.run_id) }}
+  MOSS_TRANSCRIBE_DIARIZE_MODEL_PATH: OpenMOSS-Team/MOSS-Transcribe-Diarize
+
+# Invoked by omni-ci.yaml after unit tests. Restores omni only.
+# DAG:
+#   stage-1-multi-speaker -> stage-2-seedtts
+
+jobs:
+  stage-1-multi-speaker:
+    name: stage 1 - MOSS-TD multi-speaker
+    runs-on: [self-hosted, h100]
+    # movies800 + stream + aishell4_long + googletime on DP=2.
+    timeout-minutes: 90
+    container:
+      image: hongccc/sglang-omni@sha256:374d0b1c30b2bff685b1716fc64a02ad3b3d0a90fe2ce73ce9861a6992c28101
+      options: >-
+        --rm
+        -e NVIDIA_VISIBLE_DEVICES
+        -e OMNI_CI_CPUSET
+        -v /dev/shm:/dev/shm
+        -v /data/omni-ci:/data/omni-ci
+        -v /data/cache/huggingface:/github/home/.cache/huggingface
+        -v /data/cache/huggingface:/root/.cache/huggingface
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/omni-setup
+        with:
+          venv-name: omni
+
+      - name: Run MOSS-Transcribe-Diarize multi-speaker CI
+        shell: bash
+        run: |
+          source omni/bin/activate
+          export PYTHONPATH=$PWD
+          bash .github/scripts/run_flaky_pytest.sh \
+            pytest tests/test_model/test_asr_ci_multi_speaker.py -v -s -x
+        env:
+          HF_ENDPOINT: https://huggingface.co
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MOSS_TRANSCRIBE_DIARIZE_MODEL_PATH: ${{ env.MOSS_TRANSCRIBE_DIARIZE_MODEL_PATH }}
+          TORCHINDUCTOR_CACHE_DIR: ${{ env.OMNI_CI_HOME }}/.torchinductor
+
+      - name: Post-stage cleanup
+        if: always()
+        uses: ./.github/actions/omni-post-stage
+        with:
+          stage-label: ASR stage 1 (MOSS-TD multi-speaker)
+          artifact-path-globs: |
+            */moss_transcribe_diarize_results.json
+            */moss_transcribe_diarize_stream_results.json
+            */moss_transcribe_diarize_aishell4_long_results.json
+            */moss_transcribe_diarize_aishell4_long90_results.json
+            */moss_transcribe_diarize_googletime_results.json
+          artifact-upload-name: asr-stage-multi-speaker-results
+          artifact-upload-path: |
+            /tmp/**/moss_transcribe_diarize_results.json
+            /tmp/**/moss_transcribe_diarize_stream_results.json
+            /tmp/**/moss_transcribe_diarize_aishell4_long_results.json
+            /tmp/**/moss_transcribe_diarize_aishell4_long90_results.json
+            /tmp/**/moss_transcribe_diarize_googletime_results.json
+          summary-only: "true"
+
+  stage-2-seedtts:
+    name: stage 2 - SeedTTS ASR
+    needs: stage-1-multi-speaker
+    if: always() && !cancelled()
+    runs-on: [self-hosted, h100]
+    timeout-minutes: 30
+    container:
+      image: hongccc/sglang-omni@sha256:374d0b1c30b2bff685b1716fc64a02ad3b3d0a90fe2ce73ce9861a6992c28101
+      options: >-
+        --rm
+        -e NVIDIA_VISIBLE_DEVICES
+        -e OMNI_CI_CPUSET
+        -v /dev/shm:/dev/shm
+        -v /data/omni-ci:/data/omni-ci
+        -v /data/cache/huggingface:/github/home/.cache/huggingface
+        -v /data/cache/huggingface:/root/.cache/huggingface
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/omni-setup
+        with:
+          venv-name: omni
+
+      - name: Run SeedTTS ASR CI
+        shell: bash
+        run: |
+          source omni/bin/activate
+          export PYTHONPATH=$PWD
+          bash .github/scripts/run_flaky_pytest.sh \
+            pytest tests/test_model/test_asr_ci_seedtts.py -v -s -x
+        env:
+          ASR_CI_MODEL: ${{ inputs.asr_ci_model }}
+          HF_ENDPOINT: https://huggingface.co
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          TORCHINDUCTOR_CACHE_DIR: ${{ env.OMNI_CI_HOME }}/.torchinductor
+
+      - name: Post-stage cleanup
+        if: always()
+        uses: ./.github/actions/omni-post-stage
+        with:
+          stage-label: ASR stage 2 (SeedTTS)
+          artifact-path-globs: |
+            */asr_seedtts_en_results.json
+            */asr_seedtts_zh_results.json
+          artifact-upload-name: asr-stage-seedtts-results
+          artifact-upload-path: |
+            /tmp/**/asr_seedtts_en_results.json
+            /tmp/**/asr_seedtts_zh_results.json
+          summary-only: "true"

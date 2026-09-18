@@ -1,0 +1,15 @@
+.git
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+results/
+checkpoints/
+*.egg-info/
+.claude/
+_probe*_tmp.py
+examples/_alloc_debug_server.py
+sglang_omni/models/moss_vl_realtime/_alloc_debug.py

@@ -1,0 +1,1465 @@
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+import importlib
+import os
+import subprocess
+import sys
+import threading
+from types import ModuleType, SimpleNamespace
+
+import numpy as np
+import pytest
+import torch
+import typer
+
+from sglang_omni.cli.serve import apply_torch_compile_cli_overrides
+from sglang_omni.config import build_process_topology_plan, build_stage_placement_plan
+from sglang_omni.models.fishaudio_s2_pro.config import S2ProPipelineConfig
+from sglang_omni.models.fishaudio_s2_pro.fish_speech.tokenizer import (
+    IM_END_TOKEN,
+    IM_START_TOKEN,
+    MODALITY_VOICE_TOKEN,
+)
+from sglang_omni.models.fishaudio_s2_pro.payload_types import S2ProState
+from sglang_omni.models.fishaudio_s2_pro.request_builders import (
+    S2ProSGLangRequestData,
+    apply_tts_result,
+    build_sglang_tts_request,
+    make_tts_scheduler_adapters,
+)
+from sglang_omni.models.fishaudio_s2_pro.tokenizer import (
+    Reference,
+    S2ProTokenizerAdapter,
+)
+from sglang_omni.scheduling.reference_encoder import ReferenceEncodeService
+from tests.unit_test.fakes import FakeServerArgs
+from tests.unit_test.fixtures.fish_fakes import (
+    FakeFishTokenizer,
+    make_s2pro_payload,
+    make_s2pro_state,
+)
+
+
+@pytest.fixture(autouse=True)
+def fast_sampling_params(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "sglang.srt.sampling.sampling_params.SamplingParams.normalize",
+        lambda self, tokenizer: None,
+    )
+    monkeypatch.setattr(
+        "sglang.srt.sampling.sampling_params.SamplingParams.verify",
+        lambda self, vocab_size: None,
+    )
+
+
+def test_fish_config_state_and_tokenizer_prompt_contracts() -> None:
+    """Preserves S2-Pro topology, state tensor round-trip, and prompt VQ layout."""
+    config = S2ProPipelineConfig(model_path="model")
+    assert [stage.name for stage in config.stages] == [
+        "preprocessing",
+        "tts_engine",
+        "vocoder",
+    ]
+    assert [stage.process for stage in config.stages] == [
+        "preprocessing",
+        "pipeline",
+        "pipeline",
+    ]
+    assert [
+        stage.runtime.resources.total_gpu_memory_fraction
+        for stage in config.stages
+        if stage.gpu is not None
+    ] == [None, None]
+    build_process_topology_plan(config, build_stage_placement_plan(config))
+    assert config.terminal_stages == ["vocoder"]
+    assert config.gpu_placement == {"tts_engine": 0, "vocoder": 0}
+    assert config.supports_uploaded_voice_references() is True
+
+    state = S2ProState(
+        input_ids=torch.tensor([1, 2, 3]),
+        vq_mask_tokens=torch.tensor([False, True, False]),
+        vq_parts=[torch.tensor([[10, 11], [20, 21]])],
+        output_codes=torch.tensor([[100, 101], [1, 2], [3, 4]]),
+    )
+    restored = S2ProState.from_dict(state.to_dict())
+    assert restored.input_ids == [1, 2, 3]
+    assert torch.equal(restored.vq_parts[0], torch.tensor([[10, 11], [20, 21]]))
+    assert torch.equal(
+        restored.output_codes, torch.tensor([[100, 101], [1, 2], [3, 4]])
+    )
+
+    tokenizer = FakeFishTokenizer()
+    adapter = S2ProTokenizerAdapter(tokenizer)
+    prompt = adapter.build_prompt(
+        "target",
+        references=[
+            Reference(
+                audio_bytes=b"",
+                text="ref",
+                vq_codes=torch.tensor([[0, 1], [10, 11]], dtype=torch.long),
+            )
+        ],
+        num_codebooks=2,
+        speaker="alice",
+    )
+    assert adapter.eos_token_ids == [99]
+    assert prompt["vq_mask_tokens"].dtype == torch.bool
+    assert prompt["vq_mask_tokens"].sum().item() == 2
+    assert torch.equal(prompt["vq_parts"][0], torch.tensor([[0, 1], [10, 11]]))
+    assert any("<|speaker:alice|>target" in text for text in tokenizer.encoded_texts)
+
+
+@pytest.mark.parametrize(
+    "cpu_count,expected_intraop_threads",
+    [(4, 1), (32, 4), (224, 8)],
+)
+def test_fish_preprocessing_uses_bounded_cpu_threads(
+    monkeypatch: pytest.MonkeyPatch,
+    cpu_count: int,
+    expected_intraop_threads: int,
+) -> None:
+    stages = importlib.import_module("sglang_omni.models.fishaudio_s2_pro.stages")
+
+    monkeypatch.delenv("OMP_NUM_THREADS", raising=False)
+    monkeypatch.setattr(
+        stages.os,
+        "sched_getaffinity",
+        lambda _pid: set(range(cpu_count)),
+        raising=False,
+    )
+    configured_threads: list[int] = []
+    monkeypatch.setattr(stages.torch, "set_num_threads", configured_threads.append)
+
+    intraop_threads = stages._configure_preprocessing_threads(worker_count=8)
+
+    assert configured_threads == [expected_intraop_threads]
+    assert intraop_threads == expected_intraop_threads
+
+
+def _run_configure_preprocessing_threads(
+    env_overrides: dict[str, str], *, worker_count: int = 8
+) -> tuple[int, int, int]:
+    """Run ``_configure_preprocessing_threads`` in a fresh interpreter and return
+    ``(returned_value, real_get_num_threads, cap)``."""
+    snippet = (
+        "import torch\n"
+        "from sglang_omni.models.fishaudio_s2_pro.stages import (\n"
+        "    _configure_preprocessing_threads as configure,\n"
+        "    _MAX_PREPROCESSING_INTRAOP_THREADS as cap,\n"
+        ")\n"
+        f"returned = configure({worker_count})\n"
+        "print(returned, torch.get_num_threads(), cap)\n"
+    )
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in ("OMP_NUM_THREADS", "MKL_NUM_THREADS")
+    }
+    env.update(env_overrides)
+    stdout = subprocess.check_output(
+        [sys.executable, "-c", snippet], env=env, text=True
+    )
+    returned, effective, cap = (int(token) for token in stdout.split()[-3:])
+    return returned, effective, cap
+
+
+@pytest.mark.parametrize(
+    "env_overrides,expected",
+    [
+        ({"OMP_NUM_THREADS": "3"}, 3),
+        ({"OMP_NUM_THREADS": "3", "MKL_NUM_THREADS": "5"}, 3),
+        ({"OMP_NUM_THREADS": "0"}, "bounded"),
+        ({"OMP_NUM_THREADS": ""}, "bounded"),
+        ({}, "bounded"),
+    ],
+)
+def test_fish_preprocessing_thread_bound_holds_in_real_process(
+    env_overrides: dict[str, str], expected: object
+) -> None:
+    """Effective torch intra-op pool matches the returned value and stays bounded;
+    an explicit OMP override wins over MKL. Verified in a real subprocess."""
+    returned, effective, cap = _run_configure_preprocessing_threads(env_overrides)
+    assert returned == effective
+    if expected == "bounded":
+        assert 1 <= effective <= cap
+    else:
+        assert effective == expected
+
+
+@pytest.mark.parametrize(
+    "references,expected_text_segments,expected_codes,vq_insert_at",
+    [
+        pytest.param(
+            None,
+            [
+                f"{IM_START_TOKEN}user\n",
+                "<|speaker:alice|>target",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}assistant\n{MODALITY_VOICE_TOKEN}",
+            ],
+            None,
+            None,
+            id="no-reference",
+        ),
+        pytest.param(
+            [
+                Reference(
+                    audio_bytes=b"",
+                    text="ref",
+                    vq_codes=torch.tensor([[0, 1], [10, 11]]),
+                )
+            ],
+            [
+                f"{IM_START_TOKEN}system\n",
+                "convert the provided text to speech reference to the following:\n\nText:\n",
+                "<|speaker:alice|>ref",
+                "\n\nSpeech:\n",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}user\n",
+                "<|speaker:alice|>target",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}assistant\n{MODALITY_VOICE_TOKEN}",
+            ],
+            torch.tensor([[0, 1], [10, 11]]),
+            4,
+            id="single-reference",
+        ),
+        pytest.param(
+            [
+                Reference(
+                    audio_bytes=b"",
+                    text="one",
+                    vq_codes=torch.tensor([[0], [10]]),
+                ),
+                Reference(
+                    audio_bytes=b"",
+                    text="two",
+                    vq_codes=torch.tensor([[1, 2], [11, 12]]),
+                ),
+            ],
+            [
+                f"{IM_START_TOKEN}system\n",
+                "convert the provided text to speech reference to the following:\n\nText:\n",
+                "<|speaker:alice|>one",
+                "<|speaker:alice|>two",
+                "\n\nSpeech:\n",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}user\n",
+                "<|speaker:alice|>target",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}assistant\n{MODALITY_VOICE_TOKEN}",
+            ],
+            torch.tensor([[0, 1, 2], [10, 11, 12]]),
+            5,
+            id="multiple-references",
+        ),
+        pytest.param(
+            [Reference(audio_bytes=b"", text="ref text")],
+            [
+                f"{IM_START_TOKEN}system\n",
+                "convert the provided text to speech reference to the following:\n\nText:\n",
+                "<|speaker:alice|>ref text",
+                "\n\nSpeech:\n",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}user\n",
+                "<|speaker:alice|>target",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}assistant\n{MODALITY_VOICE_TOKEN}",
+            ],
+            None,
+            None,
+            id="reference-text-only",
+        ),
+        pytest.param(
+            [
+                Reference(
+                    audio_bytes=b"",
+                    text="",
+                    vq_codes=torch.tensor([[3, 4], [13, 14]]),
+                )
+            ],
+            [
+                f"{IM_START_TOKEN}system\n",
+                "convert the provided text to speech reference to the following:\n\nText:\n",
+                "\n\nSpeech:\n",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}user\n",
+                "<|speaker:alice|>target",
+                f"{IM_END_TOKEN}\n",
+                f"{IM_START_TOKEN}assistant\n{MODALITY_VOICE_TOKEN}",
+            ],
+            torch.tensor([[3, 4], [13, 14]]),
+            3,
+            id="reference-codes-only",
+        ),
+    ],
+)
+def test_fish_inference_prompt_preserves_segment_and_vq_layout(
+    references: list[Reference] | None,
+    expected_text_segments: list[str],
+    expected_codes: torch.Tensor | None,
+    vq_insert_at: int | None,
+) -> None:
+    tokenizer = FakeFishTokenizer()
+    prompt = S2ProTokenizerAdapter(tokenizer).build_prompt(
+        "target", references=references, num_codebooks=2, speaker="alice"
+    )
+
+    assert tokenizer.encoded_texts == expected_text_segments
+
+    expected_tokenizer = FakeFishTokenizer()
+    expected_ids: list[int] = []
+    expected_mask: list[bool] = []
+    for index, segment in enumerate(expected_text_segments):
+        if index == vq_insert_at:
+            assert expected_codes is not None
+            semantic_ids = expected_tokenizer.convert_tokens_to_ids(
+                [f"<|semantic:{int(code)}|>" for code in expected_codes[0]]
+            )
+            expected_ids.extend(semantic_ids)
+            expected_mask.extend([True] * len(semantic_ids))
+        text_ids = expected_tokenizer.encode(segment)
+        expected_ids.extend(text_ids)
+        expected_mask.extend([False] * len(text_ids))
+
+    assert prompt["input_ids"].dtype == torch.int
+    assert torch.equal(prompt["input_ids"], torch.tensor(expected_ids, dtype=torch.int))
+    assert prompt["vq_mask_tokens"].dtype == torch.bool
+    assert torch.equal(prompt["vq_mask_tokens"], torch.tensor(expected_mask))
+
+    if expected_codes is None:
+        assert prompt["vq_parts"] == []
+    else:
+        assert len(prompt["vq_parts"]) == 1
+        assert prompt["vq_parts"][0].dtype == torch.int
+        assert torch.equal(prompt["vq_parts"][0], expected_codes.to(torch.int))
+
+
+def test_fish_inference_prompt_preserves_zero_length_vq_codes() -> None:
+    prompt = S2ProTokenizerAdapter(FakeFishTokenizer()).build_prompt(
+        "target",
+        references=[
+            Reference(
+                audio_bytes=b"",
+                text="",
+                vq_codes=torch.empty((2, 0), dtype=torch.long),
+            )
+        ],
+        num_codebooks=2,
+    )
+
+    assert not prompt["vq_mask_tokens"].any()
+    assert len(prompt["vq_parts"]) == 1
+    assert prompt["vq_parts"][0].shape == (2, 0)
+    assert prompt["vq_parts"][0].dtype == torch.int
+
+
+@pytest.mark.parametrize(
+    "references,expected_error",
+    [
+        pytest.param(
+            [Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((3, 1)))],
+            "Reference 0 VQ codes must have shape (2, T); got (3, 1)",
+            id="single-wrong-codebook-count",
+        ),
+        pytest.param(
+            [
+                Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((3, 1))),
+                Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((3, 2))),
+            ],
+            "Reference 0 VQ codes must have shape (2, T); got (3, 1)",
+            id="multiple-same-wrong-codebook-count",
+        ),
+        pytest.param(
+            [
+                Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((2, 1))),
+                Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((3, 1))),
+            ],
+            "Reference 1 VQ codes must have shape (2, T); got (3, 1)",
+            id="later-reference-wrong-codebook-count",
+        ),
+        pytest.param(
+            [Reference(audio_bytes=b"", text="", vq_codes=torch.zeros((2,)))],
+            "Reference 0 VQ codes must have shape (2, T); got (2,)",
+            id="rank-one-codes",
+        ),
+    ],
+)
+def test_fish_inference_prompt_rejects_invalid_reference_codebook_shapes(
+    references: list[Reference], expected_error: str
+) -> None:
+    with pytest.raises(ValueError) as exc_info:
+        S2ProTokenizerAdapter(FakeFishTokenizer()).build_prompt(
+            "target", references=references, num_codebooks=2
+        )
+
+    assert str(exc_info.value) == expected_error
+
+
+def test_fish_tts_request_and_result_adapters_preserve_tensor_contracts() -> None:
+    """Preserves TTS request tensor fields and result adapter output-code shape."""
+    tokenizer = FakeFishTokenizer()
+    state = make_s2pro_state(
+        input_ids=[10, 11, 12],
+        vq_mask_tokens=[False, True, True],
+        vq_parts=[[[1, 2], [3, 4]]],
+        max_new_tokens=6,
+        temperature=0.6,
+    )
+
+    req_data = build_sglang_tts_request(state, tokenizer, request_id="req-1")
+    assert torch.equal(req_data.input_ids, torch.tensor([10, 11, 12]))
+    assert req_data.vq_mask_tokens.dtype == torch.bool
+    assert torch.equal(req_data.vq_parts[0], torch.tensor([[1, 2], [3, 4]]))
+    assert req_data.req.eos_token_ids == {99}
+
+    req_data.output_codes = [
+        torch.tensor([[100], [1], [2]], dtype=torch.long),
+        torch.tensor([[101], [3], [4]], dtype=torch.long),
+    ]
+    apply_tts_result(state, req_data)
+    assert torch.equal(
+        state.output_codes,
+        torch.tensor([[100, 101], [1, 3], [2, 4]], dtype=torch.long),
+    )
+    assert state.prompt_tokens == 3
+    assert state.completion_tokens == 2
+
+    payload = make_s2pro_payload(request_id="req-2")
+    request_builder, result_adapter, _ = make_tts_scheduler_adapters(
+        tokenizer=tokenizer
+    )
+    adapted = request_builder(payload)
+    adapted.output_codes = [torch.tensor([[100], [1], [2]], dtype=torch.long)]
+    result_payload = result_adapter(adapted)
+    assert adapted.stage_payload is payload
+    assert result_payload.request is payload.request
+    assert result_payload.data["output_codes"] == [[100], [1], [2]]
+
+
+@pytest.mark.parametrize("top_k", [0, 31])
+def test_fish_tts_rejects_top_k_outside_graph_width(top_k: int) -> None:
+    tokenizer = FakeFishTokenizer()
+    state = make_s2pro_state(top_k=top_k)
+
+    with pytest.raises(ValueError, match="S2-Pro top_k must be -1 or between 1 and 30"):
+        build_sglang_tts_request(state, tokenizer, request_id="bad-top-k")
+
+    with pytest.raises(ValueError, match="S2-Pro top_k must be -1 or between 1 and 30"):
+        S2ProSGLangRequestData(
+            input_ids=torch.tensor([], dtype=torch.long),
+            req=object(),
+            top_k=top_k,
+        )
+
+
+def test_fish_tts_accepts_graph_top_k_width() -> None:
+    tokenizer = FakeFishTokenizer()
+    state = make_s2pro_state(top_k=30)
+
+    req_data = build_sglang_tts_request(state, tokenizer, request_id="top-k-30")
+
+    assert req_data.top_k == 30
+
+
+def test_fish_tts_accepts_default_top_k_sentinel() -> None:
+    tokenizer = FakeFishTokenizer()
+    state = make_s2pro_state(top_k=-1)
+
+    req_data = build_sglang_tts_request(state, tokenizer, request_id="top-k-default")
+
+    assert req_data.top_k == -1
+
+
+def _server_args_overrides(config: S2ProPipelineConfig, name: str) -> dict[str, object]:
+    stage = next(stage for stage in config.stages if stage.name == name)
+    return dict(stage.factory_args.get("server_args_overrides") or {})
+
+
+@pytest.mark.parametrize(
+    "talker_mode,talker_max_bs,expected",
+    [
+        ("on", None, {"enable_torch_compile": True}),
+        ("off", None, {"enable_torch_compile": False}),
+        ("default", 2, {"torch_compile_max_bs": 2}),
+        ("on", 4, {"enable_torch_compile": True, "torch_compile_max_bs": 4}),
+    ],
+)
+def test_s2pro_cli_talker_torch_compile_targets_tts_engine(
+    talker_mode: str,
+    talker_max_bs: int | None,
+    expected: dict[str, object],
+) -> None:
+    config = S2ProPipelineConfig(model_path="model")
+
+    apply_torch_compile_cli_overrides(
+        config,
+        thinker_torch_compile="default",
+        talker_torch_compile=talker_mode,
+        thinker_torch_compile_max_bs=None,
+        talker_torch_compile_max_bs=talker_max_bs,
+    )
+
+    assert _server_args_overrides(config, "tts_engine") == expected
+    assert _server_args_overrides(config, "vocoder") == {}
+
+
+def test_s2pro_cli_talker_torch_compile_default_is_noop() -> None:
+    config = S2ProPipelineConfig(model_path="model")
+
+    apply_torch_compile_cli_overrides(
+        config,
+        thinker_torch_compile="default",
+        talker_torch_compile="default",
+        thinker_torch_compile_max_bs=None,
+        talker_torch_compile_max_bs=None,
+    )
+
+    assert _server_args_overrides(config, "tts_engine") == {}
+
+
+def test_s2pro_cli_talker_torch_compile_max_bs_rejects_non_positive() -> None:
+    config = S2ProPipelineConfig(model_path="model")
+
+    with pytest.raises(
+        typer.BadParameter,
+        match="torch compile max batch size must be >= 1",
+    ):
+        apply_torch_compile_cli_overrides(
+            config,
+            thinker_torch_compile="default",
+            talker_torch_compile="default",
+            thinker_torch_compile_max_bs=None,
+            talker_torch_compile_max_bs=0,
+        )
+
+
+def test_s2pro_compile_helper_targets_forward_kvcached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HOME", "/tmp")
+    stages = importlib.import_module("sglang_omni.models.fishaudio_s2_pro.stages")
+
+    fake_runner = ModuleType("sglang.srt.compilation.torch_compile_decoration")
+    fake_runner.set_torch_compile_config = lambda: None
+    monkeypatch.setitem(
+        sys.modules,
+        "sglang.srt.compilation.torch_compile_decoration",
+        fake_runner,
+    )
+
+    compile_calls: list[tuple[object, str | None, dict[str, object]]] = []
+
+    def fake_compile(
+        target: object, *, mode: str | None = None, **kwargs: object
+    ) -> object:
+        compile_calls.append((target, mode, kwargs))
+        return f"compiled-{len(compile_calls)}"
+
+    monkeypatch.setattr(torch, "compile", fake_compile)
+    monkeypatch.setenv("SGLANG_TORCH_COMPILE_MODE", "reduce-overhead")
+
+    class _Layer:
+        def forward_kvcached(
+            self,
+            x: torch.Tensor,
+            freqs_cis: torch.Tensor,
+            cache_seqlens: torch.Tensor,
+            cache_position: int,
+        ) -> torch.Tensor:
+            del freqs_cis, cache_seqlens, cache_position
+            return x
+
+    class _AudioDecoder:
+        def __init__(self) -> None:
+            self.layers = [_Layer()]
+
+        def set_compiled_forward_kvcached_layers(
+            self,
+            forward_kvcached_layers: list[object],
+            *,
+            max_batch_size: int,
+        ) -> None:
+            self._compiled_forward_kvcached_layers = forward_kvcached_layers
+            self._compiled_forward_kvcached_max_bs = max_batch_size
+
+    audio_decoder = _AudioDecoder()
+    model = SimpleNamespace(_audio_decoder=audio_decoder)
+
+    stages._compile_s2pro_codebook_decoder(model, max_batch_size=2)
+
+    assert len(compile_calls) == 1
+    target, mode, kwargs = compile_calls[0]
+    assert getattr(target, "__self__", None) is audio_decoder.layers[0]
+    assert getattr(target, "__name__", "") == "forward_kvcached"
+    assert mode == "reduce-overhead"
+    assert kwargs == {}
+    assert audio_decoder._compiled_forward_kvcached_layers == ["compiled-1"]
+    assert audio_decoder._compiled_forward_kvcached_max_bs == 2
+
+
+def _run_s2pro_engine_with_fake_buffers(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    text_buffer_bs: int = 64,
+    audio_buffer_bs: int = 64,
+    sm_version: int | None = 90,
+    flashinfer_available: bool = True,
+    server_args_overrides: dict[str, object] | None = None,
+) -> SimpleNamespace:
+    stages = importlib.import_module("sglang_omni.models.fishaudio_s2_pro.stages")
+    from sglang_omni.models.fishaudio_s2_pro import bootstrap as fish_bootstrap
+    from sglang_omni.models.fishaudio_s2_pro import (
+        engine_builder as fish_engine_builder,
+    )
+    from sglang_omni.scheduling import bootstrap as scheduler_bootstrap
+    from sglang_omni.scheduling import engine_factory, sglang_backend
+
+    monkeypatch.setattr(
+        fish_engine_builder,
+        "get_visible_gpu_sm_version",
+        lambda _gpu_id: sm_version,
+    )
+    monkeypatch.setattr(
+        fish_engine_builder,
+        "is_flashinfer_available",
+        lambda: flashinfer_available,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        engine_factory, "_resolve_checkpoint", lambda model_path: model_path
+    )
+
+    build_kwargs: dict[str, object] = {}
+    infrastructure_saw_graph_disabled: list[bool] = []
+    compile_calls: list[tuple[object, int]] = []
+    init_graph_calls: list[bool] = []
+
+    class _FakeSGLangRunner:
+        def __init__(self, server_args: SimpleNamespace) -> None:
+            self.server_args = server_args
+            self.model = SimpleNamespace()
+
+        def init_cuda_graphs(self) -> None:
+            assert self.server_args.enable_torch_compile is False
+            assert self.server_args.torch_compile_max_bs == 64
+            init_graph_calls.append(True)
+
+    class _FakeWorker:
+        def __init__(self, server_args: SimpleNamespace) -> None:
+            self.model_runner = _FakeSGLangRunner(server_args)
+            self.enable_prefill_input_embeds = False
+
+    monkeypatch.setattr(fish_bootstrap, "patch_fish_config_for_sglang", lambda: None)
+    monkeypatch.setattr(fish_bootstrap, "truncate_rope_to_bf16", lambda model: None)
+    monkeypatch.setattr(
+        fish_bootstrap,
+        "load_audio_decoder",
+        lambda checkpoint_dir, device: (
+            SimpleNamespace(kv_cache_max_batch_size=-1),
+            10,
+            4096,
+            FakeFishTokenizer(),
+        ),
+    )
+
+    def fake_bootstrap_text_model_for_decode(**kwargs: object) -> None:
+        text_model = kwargs["text_model"]
+        audio_decoder = kwargs["audio_decoder"]
+        text_model.vq_decode_max_batch_size = text_buffer_bs
+        text_model._audio_decoder = audio_decoder
+        audio_decoder.kv_cache_max_batch_size = audio_buffer_bs
+
+    monkeypatch.setattr(
+        fish_bootstrap,
+        "bootstrap_text_model_for_decode",
+        fake_bootstrap_text_model_for_decode,
+    )
+
+    def fake_build_sglang_server_args(
+        model_path: str,
+        context_length: int,
+        **kwargs: object,
+    ) -> FakeServerArgs:
+        del model_path
+        build_kwargs.update(kwargs)
+        return FakeServerArgs(
+            context_length=context_length,
+            cuda_graph_bs=kwargs["cuda_graph_bs"],
+            cuda_graph_max_bs=kwargs["cuda_graph_max_bs"],
+            cuda_graph_config=SimpleNamespace(
+                decode=SimpleNamespace(
+                    max_bs=kwargs["cuda_graph_max_bs"],
+                    bs=kwargs["cuda_graph_bs"],
+                ),
+                prefill=SimpleNamespace(backend="disabled", bs=None, max_bs=None),
+            ),
+            disable_cuda_graph=kwargs["disable_cuda_graph"],
+            enable_torch_compile=kwargs["enable_torch_compile"],
+            torch_compile_max_bs=kwargs["torch_compile_max_bs"],
+            max_running_requests=kwargs["max_running_requests"],
+            page_size=1,
+            chunked_prefill_size=kwargs["chunked_prefill_size"],
+            max_prefill_tokens=16384,
+            attention_backend=kwargs.get("attention_backend", "auto-resolved"),
+        )
+
+    def fake_create_sglang_infrastructure(
+        server_args: SimpleNamespace,
+        gpu_id: int,
+    ) -> tuple[object, object, object, object, object, object, object]:
+        assert gpu_id == 0
+        infrastructure_saw_graph_disabled.append(bool(server_args.disable_cuda_graph))
+        return (
+            _FakeWorker(server_args),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            SimpleNamespace(),
+        )
+
+    monkeypatch.setattr(
+        scheduler_bootstrap,
+        "create_sglang_infrastructure",
+        fake_create_sglang_infrastructure,
+    )
+
+    def fake_create_sglang_infrastructure_defer_cuda_graph(
+        server_args: SimpleNamespace,
+        gpu_id: int,
+    ) -> tuple[bool, tuple[object, object, object, object, object, object, object]]:
+        want_cuda_graph = not bool(server_args.disable_cuda_graph)
+        if want_cuda_graph:
+            server_args.disable_cuda_graph = True
+        infrastructure = fake_create_sglang_infrastructure(server_args, gpu_id)
+        if want_cuda_graph:
+            server_args.disable_cuda_graph = False
+        return want_cuda_graph, infrastructure
+
+    monkeypatch.setattr(
+        scheduler_bootstrap,
+        "create_sglang_infrastructure_defer_cuda_graph",
+        fake_create_sglang_infrastructure_defer_cuda_graph,
+    )
+
+    monkeypatch.setattr(
+        sglang_backend,
+        "build_sglang_server_args",
+        fake_build_sglang_server_args,
+    )
+    monkeypatch.setattr(
+        sglang_backend,
+        "SGLangOutputProcessor",
+        lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+
+    from sglang_omni.scheduling import omni_scheduler
+
+    class _FakeOmniScheduler:
+        def __init__(self, **kwargs: object) -> None:
+            self.__dict__.update(kwargs)
+
+    monkeypatch.setattr(omni_scheduler, "OmniScheduler", _FakeOmniScheduler)
+
+    fake_model_runner = ModuleType("sglang_omni.models.fishaudio_s2_pro.model_runner")
+    fake_model_runner.FishS2ProModelRunner = lambda *args, **kwargs: SimpleNamespace(
+        args=args, kwargs=kwargs
+    )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "sglang_omni.models.fishaudio_s2_pro.model_runner",
+        fake_model_runner,
+    )
+
+    def fake_compile(model: object, *, max_batch_size: int) -> None:
+        compile_calls.append((model, max_batch_size))
+
+    monkeypatch.setattr(stages, "_compile_s2pro_codebook_decoder", fake_compile)
+
+    scheduler = stages.create_sglang_tts_engine_executor(
+        "model",
+        device="cuda:0",
+        server_args_overrides=server_args_overrides,
+    )
+    return SimpleNamespace(
+        scheduler=scheduler,
+        build_kwargs=build_kwargs,
+        infrastructure_saw_graph_disabled=infrastructure_saw_graph_disabled,
+        compile_calls=compile_calls,
+        init_graph_calls=init_graph_calls,
+    )
+
+
+def test_s2pro_engine_disables_generic_compile_after_local_compile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result = _run_s2pro_engine_with_fake_buffers(monkeypatch)
+    scheduler = result.scheduler
+    build_kwargs = result.build_kwargs
+
+    # note (Gaokai): the Fish migration hinges on make_adapters() saving the
+    # third adapter and extra_scheduler_kwargs() passing it into OmniScheduler.
+    assert callable(scheduler.stream_output_builder)
+    assert build_kwargs["attention_backend"] == "fa3"
+    assert build_kwargs["enable_torch_compile"] is True
+    assert build_kwargs["max_running_requests"] == 64
+    assert build_kwargs["cuda_graph_max_bs"] == 64
+    assert build_kwargs["cuda_graph_bs"] == [
+        1,
+        2,
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+    ]
+    assert build_kwargs["torch_compile_max_bs"] == 64
+    assert result.infrastructure_saw_graph_disabled == [True]
+    assert result.compile_calls == [
+        (scheduler.model_runner.args[0].model_runner.model, 64)
+    ]
+    assert result.init_graph_calls == [True]
+    assert scheduler.server_args.disable_cuda_graph is False
+    assert scheduler.server_args.enable_torch_compile is False
+    assert scheduler.server_args.cuda_graph_max_bs == 64
+    assert scheduler.server_args.cuda_graph_bs == [
+        1,
+        2,
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+    ]
+    assert scheduler.server_args.torch_compile_max_bs == 64
+
+
+@pytest.mark.parametrize(
+    ("sm_version", "expected_backend"),
+    [
+        (89, "flashinfer"),
+        (90, "fa3"),
+        (100, "flashinfer"),
+        (120, "flashinfer"),
+    ],
+)
+def test_s2pro_engine_selects_model_local_attention_backend(
+    monkeypatch: pytest.MonkeyPatch,
+    sm_version: int | None,
+    expected_backend: str,
+) -> None:
+    result = _run_s2pro_engine_with_fake_buffers(
+        monkeypatch,
+        sm_version=sm_version,
+    )
+
+    assert result.scheduler.server_args.attention_backend == expected_backend
+
+
+def test_s2pro_engine_preserves_explicit_attention_backend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result = _run_s2pro_engine_with_fake_buffers(
+        monkeypatch,
+        sm_version=89,
+        flashinfer_available=True,
+        server_args_overrides={"attention_backend": "triton"},
+    )
+
+    assert result.scheduler.server_args.attention_backend == "triton"
+
+
+@pytest.mark.parametrize(
+    ("sm_version", "expected_error"),
+    [
+        (None, "cannot validate Fast-AR attention.*gpu_id=0"),
+        (80, "Fast-AR does not support SM80"),
+        (103, "Fast-AR does not support SM103"),
+    ],
+)
+def test_s2pro_engine_rejects_explicit_override_on_unvalidated_fast_ar_architecture(
+    monkeypatch: pytest.MonkeyPatch,
+    sm_version: int | None,
+    expected_error: str,
+) -> None:
+    with pytest.raises(RuntimeError, match=expected_error):
+        _run_s2pro_engine_with_fake_buffers(
+            monkeypatch,
+            sm_version=sm_version,
+            server_args_overrides={"attention_backend": "fa3"},
+        )
+
+
+def test_s2pro_engine_rejects_explicit_override_without_fast_ar_flashinfer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with pytest.raises(
+        RuntimeError,
+        match="Fast-AR requires FlashInfer.*SGLANG_IS_FLASHINFER_AVAILABLE",
+    ):
+        _run_s2pro_engine_with_fake_buffers(
+            monkeypatch,
+            sm_version=89,
+            flashinfer_available=False,
+            server_args_overrides={"attention_backend": "fa3"},
+        )
+
+
+@pytest.mark.parametrize(
+    ("sm_version", "expected_compile"),
+    [(89, False), (90, True), (100, False), (120, False)],
+)
+def test_s2pro_engine_compile_default_follows_validation_scope(
+    monkeypatch: pytest.MonkeyPatch,
+    sm_version: int,
+    expected_compile: bool,
+) -> None:
+    result = _run_s2pro_engine_with_fake_buffers(
+        monkeypatch,
+        sm_version=sm_version,
+    )
+
+    assert result.build_kwargs["enable_torch_compile"] is expected_compile
+    expected_compile_calls = (
+        [(result.scheduler.model_runner.args[0].model_runner.model, 64)]
+        if expected_compile
+        else []
+    )
+    assert result.compile_calls == expected_compile_calls
+    assert result.init_graph_calls == [True]
+
+
+@pytest.mark.parametrize(
+    ("sm_version", "expected_error"),
+    [
+        (None, "cannot validate Fast-AR attention.*gpu_id=0"),
+        (80, "Fast-AR does not support SM80"),
+        (103, "Fast-AR does not support SM103"),
+    ],
+)
+def test_s2pro_engine_rejects_unvalidated_automatic_backend_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    sm_version: int | None,
+    expected_error: str,
+) -> None:
+    with pytest.raises(RuntimeError, match=expected_error):
+        _run_s2pro_engine_with_fake_buffers(
+            monkeypatch,
+            sm_version=sm_version,
+        )
+
+
+def test_s2pro_engine_rejects_flashinfer_disabled_by_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SGLANG_IS_FLASHINFER_AVAILABLE", "false")
+    with pytest.raises(
+        RuntimeError,
+        match="FlashInfer is unavailable.*SGLANG_IS_FLASHINFER_AVAILABLE",
+    ):
+        _run_s2pro_engine_with_fake_buffers(
+            monkeypatch,
+            sm_version=89,
+            flashinfer_available=False,
+        )
+
+
+@pytest.mark.parametrize(
+    "text_buffer_bs,audio_buffer_bs",
+    [
+        (32, 64),
+        (64, 32),
+    ],
+)
+def test_s2pro_engine_validates_allocated_decode_buffers(
+    monkeypatch: pytest.MonkeyPatch,
+    text_buffer_bs: int,
+    audio_buffer_bs: int,
+) -> None:
+    with pytest.raises(
+        ValueError,
+        match="model_buffer_bs must cover max_running_requests",
+    ):
+        _run_s2pro_engine_with_fake_buffers(
+            monkeypatch,
+            text_buffer_bs=text_buffer_bs,
+            audio_buffer_bs=audio_buffer_bs,
+        )
+
+
+def test_fish_reference_encode_service_same_key_concurrent_merge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.stages import _FishReferenceEncodeHook
+    from sglang_omni.preprocessing import audio as audio_module
+
+    release = threading.Event()
+    entered = threading.Event()
+
+    class _AudioMediaIO:
+        def __init__(self, *, target_sr: int) -> None:
+            self.target_sr = target_sr
+
+        def load_bytes(self, payload: bytes):
+            assert payload == b"ref"
+            return np.zeros(12, dtype=np.float32), self.target_sr
+
+    class _Codec:
+        sample_rate = 16000
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def encode(self, audios: torch.Tensor, audio_lengths: torch.Tensor):
+            del audios, audio_lengths
+            entered.set()
+            assert release.wait(timeout=5)
+            self.calls += 1
+            return torch.tensor([[1, 2, 3]], dtype=torch.long), None
+
+    monkeypatch.setattr(audio_module, "AudioMediaIO", _AudioMediaIO)
+    monkeypatch.setitem(
+        sys.modules,
+        "torchaudio",
+        SimpleNamespace(
+            functional=SimpleNamespace(
+                resample=lambda audio, sr, target_sr: audio,
+            )
+        ),
+    )
+
+    codec = _Codec()
+    worker_count = 4
+    gate = threading.Barrier(worker_count)
+
+    class _GatedFishReferenceEncodeHook(_FishReferenceEncodeHook):
+        def normalize_input(self, raw_input):
+            item = super().normalize_input(raw_input)
+            gate.wait(timeout=5)
+            return item
+
+    service = ReferenceEncodeService(
+        _GatedFishReferenceEncodeHook(codec=codec, checkpoint_id="ckpt"),
+        max_items=16,
+        max_bytes=1024,
+    )
+    results: list[torch.Tensor | None] = [None] * worker_count
+    errors: list[Exception] = []
+
+    def worker(index: int) -> None:
+        try:
+            results[index] = service.get_or_encode({"bytes": b"ref"})
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(len(results))]
+    for thread in threads:
+        thread.start()
+    assert entered.wait(timeout=5)
+    release.set()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert not errors
+    assert codec.calls == 1
+    assert all(result is not None for result in results)
+    assert all(torch.equal(result, torch.tensor([[1, 2, 3]])) for result in results)
+    assert service.stats()["merged"] == 3
+
+
+def test_fish_reference_encode_service_failure_does_not_poison(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.stages import _FishReferenceEncodeHook
+    from sglang_omni.preprocessing import audio as audio_module
+
+    class _AudioMediaIO:
+        def __init__(self, *, target_sr: int) -> None:
+            self.target_sr = target_sr
+
+        def load_bytes(self, payload: bytes):
+            return np.zeros(8, dtype=np.float32), self.target_sr
+
+    class _Codec:
+        sample_rate = 16000
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def encode(self, audios: torch.Tensor, audio_lengths: torch.Tensor):
+            del audios, audio_lengths
+            self.calls += 1
+            if self.calls == 1:
+                raise RuntimeError("transient")
+            return torch.tensor([[5, 6]], dtype=torch.long), None
+
+    monkeypatch.setattr(audio_module, "AudioMediaIO", _AudioMediaIO)
+    monkeypatch.setitem(
+        sys.modules,
+        "torchaudio",
+        SimpleNamespace(
+            functional=SimpleNamespace(
+                resample=lambda audio, sr, target_sr: audio,
+            )
+        ),
+    )
+
+    codec = _Codec()
+    service = ReferenceEncodeService(
+        _FishReferenceEncodeHook(codec=codec, checkpoint_id="ckpt"),
+        max_items=16,
+        max_bytes=1024,
+    )
+
+    with pytest.raises(RuntimeError, match="transient"):
+        service.get_or_encode({"bytes": b"ref"})
+    assert service.stats()["entries"] == 0
+
+    result = service.get_or_encode({"bytes": b"ref"})
+    assert torch.equal(result, torch.tensor([[5, 6]], dtype=torch.long))
+    assert codec.calls == 2
+
+
+def test_fish_reference_path_mutation_returns_but_does_not_cache(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.stages import _FishReferenceEncodeHook
+
+    ref_path = tmp_path / "ref.wav"
+    ref_path.write_bytes(b"version-a")
+
+    def load(path: str):
+        assert path == str(ref_path)
+        return torch.zeros((1, 8), dtype=torch.float32), 16000
+
+    monkeypatch.setitem(
+        sys.modules,
+        "torchaudio",
+        SimpleNamespace(
+            load=load,
+            functional=SimpleNamespace(
+                resample=lambda audio, sr, target_sr: audio,
+            ),
+        ),
+    )
+
+    class _Codec:
+        sample_rate = 16000
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def encode(self, audios: torch.Tensor, audio_lengths: torch.Tensor):
+            del audios, audio_lengths
+            self.calls += 1
+            if self.calls == 1:
+                ref_path.write_bytes(b"version-b")
+            return torch.tensor([[self.calls, self.calls + 1]], dtype=torch.long), None
+
+    codec = _Codec()
+    service = ReferenceEncodeService(
+        _FishReferenceEncodeHook(codec=codec, checkpoint_id="ckpt"),
+        max_items=16,
+        max_bytes=1024,
+    )
+
+    first = service.get_or_encode({"audio_path": str(ref_path)})
+    assert torch.equal(first, torch.tensor([[1, 2]], dtype=torch.long))
+    assert service.stats()["entries"] == 0
+
+    second = service.get_or_encode({"audio_path": str(ref_path)})
+    assert torch.equal(second, torch.tensor([[2, 3]], dtype=torch.long))
+    assert service.stats()["entries"] == 1
+
+    third = service.get_or_encode({"audio_path": str(ref_path)})
+    assert torch.equal(third, torch.tensor([[2, 3]], dtype=torch.long))
+    assert codec.calls == 2
+
+
+def _tiny_fish_omni_config(*, with_audio_decoder: bool = True):
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic.configuration import (
+        FishQwen3AudioDecoderConfig,
+        FishQwen3Config,
+        FishQwen3OmniConfig,
+    )
+
+    text_config = FishQwen3Config(
+        vocab_size=32,
+        n_layer=1,
+        n_head=2,
+        n_local_heads=1,
+        dim=8,
+        head_dim=4,
+        intermediate_size=16,
+    )
+    audio_decoder_config = None
+    if with_audio_decoder:
+        audio_decoder_config = FishQwen3AudioDecoderConfig(
+            vocab_size=16,
+            n_layer=1,
+            n_head=2,
+            n_local_heads=1,
+            dim=8,
+            head_dim=4,
+            intermediate_size=16,
+            text_dim=8,
+            num_codebooks=2,
+        )
+    return FishQwen3OmniConfig(
+        text_config=text_config,
+        audio_decoder_config=audio_decoder_config,
+    )
+
+
+def _write_tiny_audio_decoder_checkpoint(tmp_path, *, drop_key: str | None = None):
+    from safetensors.torch import save_file
+
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic.audio_decoder import (
+        FishQwen3AudioDecoder,
+    )
+
+    config = _tiny_fish_omni_config()
+    config.save_pretrained(tmp_path)
+    source = FishQwen3AudioDecoder(config.audio_decoder_config)
+    with torch.no_grad():
+        for index, parameter in enumerate(source.parameters(), start=1):
+            parameter.fill_(index / 16)
+    state_dict = {
+        f"audio_decoder.{name}": tensor.detach().contiguous()
+        for name, tensor in source.state_dict().items()
+        if name != drop_key
+    }
+    save_file(state_dict, tmp_path / "model.safetensors")
+    return source
+
+
+def test_load_audio_decoder_strictly_loads_only_fast_path_on_meta(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sglang_omni.models import weight_loader
+    from sglang_omni.models.fishaudio_s2_pro import bootstrap
+
+    source = _write_tiny_audio_decoder_checkpoint(tmp_path)
+    tokenizer = object()
+    monkeypatch.setattr(
+        "transformers.PreTrainedTokenizerFast.from_pretrained",
+        lambda checkpoint_dir: tokenizer,
+    )
+
+    original_load_module = weight_loader.load_module
+
+    def checked_load_module(module, *args, **kwargs):
+        assert all(parameter.is_meta for parameter in module.parameters())
+        return original_load_module(module, *args, **kwargs)
+
+    monkeypatch.setattr(weight_loader, "load_module", checked_load_module)
+
+    decoder, num_codebooks, codebook_size, loaded_tokenizer = (
+        bootstrap.load_audio_decoder(str(tmp_path), device="cpu")
+    )
+
+    assert loaded_tokenizer is tokenizer
+    assert num_codebooks == 2
+    assert codebook_size == 16
+    assert all(not parameter.is_meta for parameter in decoder.parameters())
+    assert {parameter.dtype for parameter in decoder.parameters()} == {torch.bfloat16}
+    for name, expected in source.state_dict().items():
+        assert torch.equal(decoder.state_dict()[name], expected.to(torch.bfloat16))
+    assert torch.equal(decoder.codebook_offsets, torch.tensor([0, 16]))
+    assert decoder.freqs_cis.device.type == "cpu"
+
+
+def test_load_audio_decoder_rejects_missing_decoder_config(tmp_path) -> None:
+    from sglang_omni.models.fishaudio_s2_pro import bootstrap
+
+    _tiny_fish_omni_config(with_audio_decoder=False).save_pretrained(tmp_path)
+
+    with pytest.raises(RuntimeError, match="config does not define an audio decoder"):
+        bootstrap.load_audio_decoder(str(tmp_path), device="cpu")
+
+
+def test_load_audio_decoder_rejects_incomplete_decoder_weights(tmp_path) -> None:
+    from sglang_omni.models.fishaudio_s2_pro import bootstrap
+
+    _write_tiny_audio_decoder_checkpoint(
+        tmp_path,
+        drop_key="output.weight",
+    )
+
+    with pytest.raises(RuntimeError, match="Missing key.*output.weight"):
+        bootstrap.load_audio_decoder(str(tmp_path), device="cpu")
+
+
+def test_fish_checkpoint_config_remains_registered_without_hf_slow_model(
+    tmp_path,
+) -> None:
+    from transformers import AutoConfig
+
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic.configuration import (
+        FishQwen3OmniConfig,
+    )
+
+    _tiny_fish_omni_config().save_pretrained(tmp_path)
+
+    loaded = AutoConfig.from_pretrained(tmp_path)
+    assert isinstance(loaded, FishQwen3OmniConfig)
+    assert loaded.audio_decoder_config.num_codebooks == 2
+
+
+def test_fish_slow_hf_modeling_surface_is_removed() -> None:
+    assert (
+        importlib.util.find_spec(
+            "sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic.modeling"
+        )
+        is None
+    )
+
+
+@pytest.mark.parametrize(
+    "capability,expected",
+    [((8, 9), False), ((9, 0), True), ((10, 0), False), ((12, 0), False)],
+)
+def test_fast_ar_fa3_selection_follows_compute_capability(
+    monkeypatch: pytest.MonkeyPatch,
+    capability: tuple[int, int],
+    expected: bool,
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic import (
+        audio_decoder,
+    )
+
+    audio_decoder._fast_ar_uses_fa3.cache_clear()
+    monkeypatch.setattr(torch.cuda, "get_device_capability", lambda _index: capability)
+
+    assert audio_decoder._fast_ar_uses_fa3(0) is expected
+
+
+def test_fast_ar_rejects_unsupported_capability(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic import (
+        audio_decoder,
+    )
+
+    audio_decoder._fast_ar_uses_fa3.cache_clear()
+    monkeypatch.setattr(torch.cuda, "get_device_capability", lambda _index: (8, 0))
+
+    with pytest.raises(RuntimeError, match="Fast-AR does not support SM80"):
+        audio_decoder._fast_ar_uses_fa3(0)
+
+
+def test_flashinfer_fast_ar_updates_kv_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic import (
+        audio_decoder,
+    )
+
+    def single_prefill(
+        q: torch.Tensor,
+        _k: torch.Tensor,
+        _v: torch.Tensor,
+        **kwargs: object,
+    ) -> torch.Tensor:
+        del kwargs
+        return q
+
+    monkeypatch.setitem(
+        sys.modules,
+        "flashinfer",
+        SimpleNamespace(single_prefill_with_kv_cache=single_prefill),
+    )
+    q = torch.randn(2, 1, 4, 8)
+    k = torch.randn(2, 1, 2, 8)
+    v = torch.randn(2, 1, 2, 8)
+    k_cache = torch.randn(2, 5, 2, 8)
+    v_cache = torch.randn(2, 5, 2, 8)
+    expected_k_cache = k_cache.clone()
+    expected_v_cache = v_cache.clone()
+    expected_k_cache[:, 2] = k[:, 0]
+    expected_v_cache[:, 2] = v[:, 0]
+
+    output = audio_decoder._flashinfer_kvcache_attention(
+        q=q,
+        k_cache=k_cache,
+        v_cache=v_cache,
+        k=k,
+        v=v,
+        causal=True,
+        cache_position=2,
+    )
+
+    assert torch.equal(output, q)
+    assert torch.equal(k_cache, expected_k_cache)
+    assert torch.equal(v_cache, expected_v_cache)
+
+
+def test_decoder_forward_kvcached_obeys_compiled_batch_size_cap() -> None:
+    from sglang_omni.models.fishaudio_s2_pro.fish_speech.models.text2semantic.audio_decoder import (
+        FishQwen3AudioDecoder,
+    )
+
+    class _EagerLayer:
+        def forward_kvcached(
+            self,
+            x: torch.Tensor,
+            freqs_cis: torch.Tensor,
+            cache_seqlens: torch.Tensor,
+            cache_position: int,
+        ) -> torch.Tensor:
+            del freqs_cis, cache_seqlens, cache_position
+            seen_calls.append("eager")
+            return x + 10
+
+    decoder = object.__new__(FishQwen3AudioDecoder)
+    decoder.input_pos = torch.zeros(1, dtype=torch.long)
+    decoder.freqs_cis = torch.zeros(8, 1, 1, dtype=torch.float32)
+    decoder.layers = [_EagerLayer()]
+    decoder._eager_forward_kvcached_layers = [
+        layer.forward_kvcached for layer in decoder.layers
+    ]
+    decoder.norm = lambda x: x
+    decoder.output = lambda x: x
+
+    seen_calls: list[str] = []
+
+    def compiled(
+        x: torch.Tensor,
+        freqs_cis: torch.Tensor,
+        cache_seqlens: torch.Tensor,
+        cache_position: int,
+    ) -> torch.Tensor:
+        del freqs_cis, cache_seqlens, cache_position
+        seen_calls.append("compiled")
+        return x + 1
+
+    decoder._compiled_forward_kvcached_layers = [compiled]
+    decoder._compiled_forward_kvcached_max_bs = 2
+
+    x = torch.zeros((2, 1, 4), dtype=torch.float32)
+    out = FishQwen3AudioDecoder.forward_kvcached(decoder, x=x, codebook_idx=2)
+
+    assert torch.equal(out, torch.ones_like(x))
+    assert seen_calls == ["compiled"]
+
+    seen_calls.clear()
+    x = torch.zeros((3, 1, 4), dtype=torch.float32)
+    out = FishQwen3AudioDecoder.forward_kvcached(decoder, x=x, codebook_idx=2)
+
+    assert torch.equal(out, torch.full_like(x, 10.0))
+    assert seen_calls == ["eager"]

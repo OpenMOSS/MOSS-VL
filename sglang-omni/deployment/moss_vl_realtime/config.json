@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 18500,
+  "context_length": 131072,
+  "mem_fraction_static": 0.5,
+  "max_sessions": 4,
+  "dp_size": 1,
+  "raw_window_seconds": 60,
+  "parked_timeout_seconds": 3600,
+  "minimum_free_gib": 65,
+  "maximum_existing_memory_mib": 2048
+}

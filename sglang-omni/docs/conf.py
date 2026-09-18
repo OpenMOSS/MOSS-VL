@@ -1,0 +1,184 @@
+import sys
+from datetime import datetime
+from pathlib import Path
+
+DOCS_PATH = Path(__file__).parent
+ROOT_PATH = DOCS_PATH.parent
+sys.path.insert(0, str(ROOT_PATH))
+
+from sglang_omni import __version__  # noqa: E402
+
+project = "MOSS-VL Realtime Backend"
+copyright = f"2025-{datetime.now().year}, SGLang-Omni"
+author = "SGLang-Omni Team"
+
+version = __version__
+release = __version__
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosectionlabel",
+    "sphinx_tabs.tabs",
+    "myst_parser",
+    "sphinx_copybutton",
+    "sphinxcontrib.mermaid",
+    "nbsphinx",
+    "sphinx.ext.mathjax",
+]
+
+nbsphinx_allow_errors = True
+nbsphinx_execute = "never"
+
+autosectionlabel_prefix_document = True
+nbsphinx_allow_directives = True
+
+
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath",
+    "deflist",
+    "colon_fence",
+    "html_image",
+    "substitution",
+]
+
+myst_heading_anchors = 5
+
+# Render bare ```mermaid fences via sphinxcontrib.mermaid (otherwise MyST emits
+# them as literal code blocks). Keeps the fences native on GitHub too.
+myst_fence_as_directive = ["mermaid"]
+
+nbsphinx_kernel_name = "python3"
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
+
+nb_render_priority = {
+    "html": (
+        "application/vnd.jupyter.widget-view+json",
+        "application/javascript",
+        "text/html",
+        "image/svg+xml",
+        "image/png",
+        "image/jpeg",
+        "text/markdown",
+        "text/latex",
+        "text/plain",
+    )
+}
+
+myst_ref_domains = ["std", "py"]
+
+templates_path = ["_templates"]
+
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}
+
+master_doc = "index"
+
+language = "en"
+
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+pygments_style = "sphinx"
+
+html_theme = "sphinx_book_theme"
+html_logo = "_static/image/sgl-omni-logo.svg"
+html_favicon = "_static/image/logo.ico"
+html_title = project
+html_copy_source = True
+html_last_updated_fmt = ""
+
+html_theme_options = {
+    "repository_url": "https://github.com/fnlp-vision/sglang-omni-realtime",
+    "repository_branch": "main",
+    "path_to_docs": "docs",
+    "show_navbar_depth": 3,
+    "max_navbar_depth": 4,
+    "collapse_navbar": True,
+    "use_edit_page_button": True,
+    "use_source_button": True,
+    "use_issues_button": True,
+    "use_repository_button": True,
+    "use_download_button": True,
+    "use_sidenotes": True,
+    "show_toc_level": 2,
+}
+
+html_context = {
+    "display_github": True,
+    "github_user": "fnlp-vision",
+    "github_repo": "sglang-omni-realtime",
+    "github_version": "main",
+    "conf_py_path": "/docs/",
+}
+
+html_static_path = ["_static"]
+html_css_files = ["css/custom_log.css"]
+html_js_files = [
+    "js/qwen3_omni_server_generator.js",
+    "js/ming_omni_server_generator.js",
+]
+
+
+def setup(app):
+    from pygments.lexers.data import JsonLexer
+
+    app.add_lexer("jsonc", JsonLexer)
+    app.add_css_file("css/custom_log.css")
+
+
+htmlhelp_basename = "sglangdoc"
+
+latex_elements = {}
+
+latex_documents = [
+    (master_doc, "sglang.tex", "sglang Documentation", "SGLang Team", "manual"),
+]
+
+man_pages = [(master_doc, "sglang", "sglang Documentation", [author], 1)]
+
+texinfo_documents = [
+    (
+        master_doc,
+        "sglang",
+        "sglang Documentation",
+        author,
+        "sglang",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
+]
+
+epub_title = project
+
+epub_exclude_files = ["search.html"]
+
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+
+autodoc_preserve_defaults = True
+navigation_with_keys = False
+
+autodoc_mock_imports = [
+    "torch",
+    "transformers",
+    "triton",
+]
+
+nbsphinx_prolog = """
+.. raw:: html
+
+    <style>
+        .output_area.stderr, .output_area.stdout {
+            color: #d3d3d3 !important; /* light gray */
+        }
+    </style>
+"""

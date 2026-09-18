@@ -1,0 +1,72 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+.venv-*/
+env/
+/omni
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+seedtts_testset/
+.pytest_cache/
+.coverage
+htmlcov/
+*.wav
+
+# Logs
+*.log
+*.txt
+!/deployment/moss_vl_realtime/constraints.txt
+!/deployment/repro/build-constraints.txt
+/.repro/
+output.wav
+
+# OS
+.DS_Store
+Thumbs.db
+.ruff_cache/
+uv.lock
+results/
+.humanize/
+.benchmark-data/
+
+.tune-runs/
+.eval-runs/
+benchmarks/eval/*.edit.lock
+asr_seedtts_results.json
+.claude/*
+!.claude/skills/
+/core
+
+/task.md
+/test_minimax_music3.py
+/test_minimax_music3_acoustic.py
+
+# XPU installer lock/backup
+.pyproject.xpu.lock
+.pyproject.cuda.bak
+
+# Local MOSS-VL diagnostics and historical source snapshots
+/_probe_stress_tmp.py
+/_probe_video_tmp.py
+/examples/_alloc_debug_server.py
+/sglang_omni/models/moss_vl_realtime/_alloc_debug.py
+/checkpoints/p10_5_async_decode_20260821/
+/checkpoints/p11_stability_20260820/
+/deployment/moss_vl_realtime/cases/sha256.json

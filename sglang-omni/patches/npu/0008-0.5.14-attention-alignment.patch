@@ -1,0 +1,43 @@
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_torch_native_backend.py
+@@ -10,6 +10,8 @@
+ class AscendTorchNativeAttnBackend:
+     def __init__(self):
+         pass
++
++    _moss_vl_extend_alignment_supported = True
+
+     def scaled_dot_product_attention_with_softcapping(
+         self,
+@@ -141,7 +143,7 @@
+                     atten_end_kv = int(encoder_lens[seq_idx].item())
+                 else:
+                     atten_start_kv = int(encoder_lens[seq_idx].item())
+-                    atten_end_kv = atten_start_kv + extend_seq_len_q
++                    atten_end_kv = atten_start_kv + seq_len_kv
+
+             if (
+                 sliding_window_size is not None
+@@ -173,7 +175,11 @@
+                 query_start_idx = 0
+                 per_req_query_redundant = per_req_query
+             else:
+-                query_start_idx = max(prefill_seq_len_q - atten_start_kv, 0)
++                query_start_idx = (
++                    prefill_seq_len_q
++                    if encoder_lens is not None
++                    else max(prefill_seq_len_q - atten_start_kv, 0)
++                )
+                 per_req_query_redundant = torch.zeros(
+                     (per_req_query.shape[0], seq_len_kv, per_req_query.shape[2]),
+                     dtype=per_req_query.dtype,
+--- a/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
++++ b/sglang/srt/hardware_backend/npu/attention/ascend_backend.py
+@@ -1097,7 +1097,6 @@
+                 or topk_indices is not None or sinks is not None
+                 or forward_batch.forward_mode.is_target_verify()
+                 or forward_batch.forward_mode.is_draft_extend_v2()
+-                or forward_batch.forward_mode.is_context_parallel_extend()
+             ):
+                 raise NotImplementedError(
+                     "MOSS-VL frame visibility requires the native Ascend SDPA extend path"

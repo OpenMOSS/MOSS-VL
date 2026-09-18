@@ -1,0 +1,156 @@
+name: Cancel PR Workflow Runs
+
+on:
+  pull_request_target:
+    types: [closed, synchronize, unlabeled]
+
+concurrency:
+  group: cancel-pr-workflow-runs-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  pull-requests: read
+
+jobs:
+  cancel:
+    if: >-
+      github.event.action == 'closed' ||
+      github.event.action == 'synchronize' ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'run-ci')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel in-flight workflow runs for the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const repoFullName = `${owner}/${repo}`;
+            const prHeadRepoFullName = pr.head.repo?.full_name;
+            const activeStatuses = ['queued', 'in_progress', 'waiting', 'pending', 'requested'];
+            const legacyOmniCiRunTitle =
+              /^omni-ci pr=(?<prNumber>\d+) sha=(?<headSha>\S+) stage=(?<stageId>\S+) rerun=(?<rerunId>\S+)$/;
+
+            const action = context.payload.action;
+            const currentHeadSha = pr.head.sha;
+            const cancelAllForPr = action === 'closed' ||
+              (action === 'unlabeled' && context.payload.label.name === 'run-ci');
+            const reason = action === 'synchronize'
+              ? `PR head moved to ${currentHeadSha}; cancelling stale runs`
+              : (action === 'unlabeled'
+                ? '`run-ci` label was removed'
+                : (pr.merged ? 'PR was merged' : 'PR was closed'));
+            console.log(`Cancelling in-flight workflow runs for PR #${pr.number}: ${reason}`);
+
+            const activeRuns = [];
+            const seenRunIds = new Set();
+            for (const status of activeStatuses) {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                owner,
+                repo,
+                status,
+                per_page: 100,
+              });
+              for (const run of runs) {
+                if (!seenRunIds.has(run.id)) {
+                  seenRunIds.add(run.id);
+                  activeRuns.push(run);
+                }
+              }
+            }
+
+            const legacyOmniCiRun = (run) => {
+              const match = legacyOmniCiRunTitle.exec(run.display_title || '');
+              if (!match?.groups) {
+                return null;
+              }
+              return {
+                prNumber: Number(match.groups.prNumber),
+                headSha: match.groups.headSha,
+                stageId: match.groups.stageId,
+              };
+            };
+
+            const matchRunForPullRequest = (run) => {
+              if (run.id === context.runId) {
+                return null;
+              }
+
+              const legacyRun = legacyOmniCiRun(run);
+              if (legacyRun?.prNumber === pr.number) {
+                return {
+                  headSha: legacyRun.headSha,
+                  reason: `legacy staged CI ${legacyRun.stageId}`,
+                };
+              }
+
+              const referencedPullRequests = run.pull_requests || [];
+              if (referencedPullRequests.some((referencedPr) => {
+                const sameNumber = referencedPr.number === pr.number;
+                const sameBaseRepo = !referencedPr.base?.repo?.full_name ||
+                  referencedPr.base.repo.full_name === repoFullName;
+                return sameNumber && sameBaseRepo;
+              })) {
+                return {
+                  headSha: run.head_sha || run.head_commit?.id,
+                  reason: 'pull_requests metadata',
+                };
+              }
+
+              // Some pull_request runs are recorded against refs/pull/*/merge,
+              // so the PR number above is the primary match. Keep this fallback
+              // for older runs that do not expose pull_requests in the API.
+              const sameHeadRepo = prHeadRepoFullName &&
+                run.head_repository?.full_name === prHeadRepoFullName;
+              if (run.event === 'pull_request' &&
+                sameHeadRepo &&
+                run.head_branch === pr.head.ref) {
+                return {
+                  headSha: run.head_sha || run.head_commit?.id,
+                  reason: 'pull_request head branch fallback',
+                };
+              }
+
+              return null;
+            };
+
+            let cancelled = 0;
+            for (const run of activeRuns) {
+              const matchedRun = matchRunForPullRequest(run);
+              if (!matchedRun) {
+                continue;
+              }
+
+              const runHeadSha = matchedRun.headSha || run.head_sha || run.head_commit?.id;
+              if (!cancelAllForPr) {
+                if (!runHeadSha) {
+                  console.log(
+                    `Keeping ${run.name} (run_id=${run.id}) because its head SHA is unavailable`
+                  );
+                  continue;
+                }
+                if (runHeadSha === currentHeadSha) {
+                  console.log(
+                    `Keeping ${run.name} (run_id=${run.id}, head_sha=${runHeadSha}) because it matches the latest PR head`
+                  );
+                  continue;
+                }
+              }
+
+              console.log(
+                `Cancelling ${run.name} (run_id=${run.id}, status=${run.status}, match=${matchedRun.reason})`
+              );
+              try {
+                await github.rest.actions.cancelWorkflowRun({
+                  owner,
+                  repo,
+                  run_id: run.id,
+                });
+                cancelled++;
+              } catch (e) {
+                console.log(`  failed to cancel: ${e.message}`);
+              }
+            }
+            console.log(`Cancelled ${cancelled} in-flight run(s) for PR #${pr.number}`);

@@ -1,0 +1,21 @@
+--- a/sglang/srt/models/moss_vl.py
++++ b/sglang/srt/models/moss_vl.py
+@@ -144,6 +144,10 @@
+         self.norm1 = norm_layer(dim)
+         self.norm2 = norm_layer(dim)
+
++        # Optional vision attention backend override (e.g. "ascend_attn" for
++        # the NPU fused flash kernel — flat memory instead of materialized
++        # attention, the structural fix for large multi-frame rounds).
++        _vision_backend = os.environ.get("SGLANG_MOSS_VISION_BACKEND") or None
+         self.attn = VisionAttention(
+             embed_dim=dim,
+             num_heads=num_heads,
+@@ -153,6 +157,7 @@
+             flatten_batch=True,
+             quant_config=quant_config,
+             prefix=add_prefix("attn", prefix),
++            qkv_backend=_vision_backend,
+         )
+         self.mlp = MossVLVisionMLP(
+             dim,

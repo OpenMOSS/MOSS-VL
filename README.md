@@ -53,6 +53,7 @@ At the architectural level, **MOSS-VL-Realtime** adopts the following core desig
 ---
 
 ## 🔥 News
+- **2026/09/18**: ⚡ Vendored the specialized SGLang-Omni realtime backend ([`./sglang-omni/`](./sglang-omni/), from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime)) for multi-stream realtime serving: dynamic multi-session scheduling, data-parallel replicas, and substantially faster inference with the [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint.
 - **2026/08/31**: ⚖️ Published the MOSS-VL quantization tutorial ([English](quant/README.md) | [中文](quant/README_zh.md)): our FP8-Dynamic and NF4 recipes, KV-cache quantization, and how to quantize your own fine-tuned (e.g. SFT) MOSS-VL checkpoints.
 - **2026/08/28**: 📋 Released the [list of open-source datasets](docs/open_source_datasets.md) used in MOSS-VL training.
 - **2026/08/21**: 🤝 MOSS-VL is now supported as a first-class multimodal model in [ms-swift](https://github.com/modelscope/ms-swift), enabling image/video inference with `swift infer` and LoRA or full-parameter fine-tuning with `swift sft`. See [PR #9944](https://github.com/modelscope/ms-swift/pull/9944).
@@ -122,6 +123,8 @@ Keep `--playback-speed 1` for model inference so frames arrive on the original t
 
 It also supports streaming JSONL samples, cameras, screen capture, and synthetic sources. See [`realtime_inference/README.md`](./realtime_inference/README.md) for the complete CLI, input format, and WebSocket protocol.
 
+For production multi-stream serving, use the specialized SGLang-Omni backend vendored in [`sglang-omni/`](./sglang-omni/) — dynamic multi-session scheduling and data-parallel replicas deliver substantially higher realtime throughput.
+
 ### Offline Inference
 
 Offline inference supports full-modality queries (interleaved text, image, and video inputs). The fastest way to get a first result is `offline_batch_generate`:
@@ -169,6 +172,7 @@ contract, supported paths, build instructions, and source lineage.
 ### Deployment & Inference Engines
 MOSS-VL can also be efficiently deployed with the following inference backends:
 - **SGLang**: see [`sglang/README.md`](./sglang/README.md)
+- **SGLang-Omni (realtime serving)**: specialized multi-session realtime backend with dynamic scheduling and data-parallel replicas — see [`sglang-omni/README.md`](./sglang-omni/README.md)
 
 ### Fine-Tuning
 We provide a lightweight SFT framework built on HuggingFace `transformers.Trainer`. It supports full-parameter training and LoRA, with the vision encoder, language model, and LM head independently controllable.

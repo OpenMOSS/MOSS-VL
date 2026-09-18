@@ -53,6 +53,7 @@ https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 ---
 
 ## 🔥 新闻
+- **2026/09/18**: ⚡ 内置特化的 SGLang-Omni 实时推理后端（[`./sglang-omni/`](./sglang-omni/)，来自 [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime)），用于多路实时推理服务：动态多会话调度、数据并行多副本、推理速度大幅提升，需搭配 [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint 使用。
 - **2026/08/31**: ⚖️ 发布 [MOSS-VL 量化教程](quant/README_zh.md)（[English](quant/README.md)）：包含 FP8-Dynamic 与 NF4 量化配方、KV Cache 量化，以及如何量化自己微调（如 SFT）后的 MOSS-VL checkpoint。
 - **2026/08/28**: 📋 公开 MOSS-VL 训练使用的[开源数据集列表](docs/open_source_datasets.md)。
 - **2026/08/21**: 🤝 MOSS-VL 已正式接入 [ms-swift](https://github.com/modelscope/ms-swift)，作为 Transformers 后端的一等多模态模型，现可通过 `swift infer` 进行图像/视频推理，并通过 `swift sft` 进行 LoRA 与全参数微调。详见 [PR #9944](https://github.com/modelscope/ms-swift/pull/9944)。
@@ -122,6 +123,8 @@ CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
 
 此外还支持流式 JSONL 样例、摄像头、屏幕采集和合成视频源。完整 CLI、输入格式和 WebSocket 协议请参阅 [`realtime_inference/README.md`](./realtime_inference/README.md)。
 
+生产环境多路实时推流推荐使用仓库内置的 SGLang-Omni 特化后端 [`sglang-omni/`](./sglang-omni/)，支持动态多会话调度与数据并行多副本，实时推理吞吐大幅提升。
+
 ### 离线推理
 
 离线推理支持全模态查询（图文/视频等），最快的调用方式是 `offline_batch_generate`：
@@ -168,6 +171,7 @@ MOSS-VL 专用版本，并非通用 FlashAttention 发行版。具体掩码约�
 ### 部署与推理引擎
 本模型同时支持以下推理后端引擎进行高效部署：
 - **SGLang**: 详见 [`sglang/README_zh.md`](./sglang/README_zh.md)
+- **SGLang-Omni（实时推理）**: 支持动态多会话调度与数据并行多副本的特化实时推理后端，详见 [`sglang-omni/README_zh.md`](./sglang-omni/README_zh.md)
 
 ### 微调 (Fine-Tuning)
 我们提供了一套基于 HuggingFace `transformers.Trainer` 的轻量级 SFT 微调框架,支持全参数训练与 LoRA,且可独立控制视觉编码器、语言模型和 LM Head 是否参与训练。

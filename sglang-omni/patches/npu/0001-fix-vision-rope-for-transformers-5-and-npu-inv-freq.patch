@@ -1,0 +1,16 @@
+--- /tmp/opencode/model_backup/srt_moss_vl_0516.py.bak	2026-09-09 20:17:57.039965641 +0800
++++ /opt/mamba/lib/python3.13/site-packages/sglang/srt/models/moss_vl.py	2026-09-09 20:18:22.211967138 +0800
+@@ -327,6 +327,13 @@
+             pos_ids.append(torch.stack([hpos_ids, wpos_ids], dim=-1).repeat(t, 1))
+         pos_ids = torch.cat(pos_ids, dim=0)
+         max_grid_size = int(grid_thw[:, 1:].max())
++        # NPU: inv_freq is a non-persistent buffer built on CPU; realign it
++        # with the module device once, and co-locate pos_ids with the
++        # frequency table for the lookup below.
++        inv_freq = getattr(self.rotary_pos_emb, "inv_freq", None)
++        if inv_freq is not None and inv_freq.device != self.device:
++            self.rotary_pos_emb.inv_freq = inv_freq.to(self.device)
++        pos_ids = pos_ids.to(self.device)
+         # transformers 5.12's rotary forward takes 1-D position_ids on the input device (grid_thw is CPU).
+         rotary_pos_emb_full = self.rotary_pos_emb(
+             torch.arange(max_grid_size, device=self.device)
