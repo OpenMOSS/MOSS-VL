@@ -18,7 +18,7 @@ Supported input sources include:
 
 ## High-Performance Serving with SGLang-Omni
 
-The scripts in this directory are a reference implementation built directly on the Hugging Face runtime: one model process serves one active realtime session. For production deployments that must serve many concurrent realtime streams, use the vendored specialized backend in [`../../third_party/sglang-omni/`](../../third_party/sglang-omni/), synchronized from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime):
+The scripts in this directory are a reference implementation built directly on the Hugging Face runtime: one model process serves one active realtime session. For production deployments that must serve many concurrent realtime streams, use the specialized backend packaged in [`../../third_party/sglang-omni/`](../../third_party/sglang-omni/), a snapshot of [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime):
 
 - **Multi-stream concurrency**: dynamic multi-session scheduling serves several realtime video streams per replica (4 sessions by default), and data-parallel replicas (`--dp-size`) scale throughput further; tensor parallelism is also supported.
 - **Substantially faster inference**: incremental visual features and KV caching, decode CUDA Graphs, a 60-second sliding visual KV window, and bounded input queues.

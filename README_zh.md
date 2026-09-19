@@ -56,7 +56,7 @@ https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 - **2026/09/18**: ⚡ 内置特化的 SGLang-Omni 实时推理后端（[`./third_party/sglang-omni/`](./third_party/sglang-omni/)）：支持动态多会话调度与数据并行多副本，可同时服务多路视频流、吞吐大幅提升，需搭配 [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint 使用。
 - **2026/08/31**: ⚖️ 发布 [MOSS-VL 量化教程](quantization/README_zh.md)（[English](quantization/README.md)）：包含 FP8-Dynamic 与 NF4 量化配方、KV Cache 量化，以及如何量化自己微调（如 SFT）后的 MOSS-VL checkpoint。
 - **2026/08/28**: 📋 公开 MOSS-VL 训练使用的[开源数据集列表](docs/open_source_datasets.md)。
-- **2026/08/21**: 🤝 MOSS-VL 已正式接入 [ms-swift](https://github.com/modelscope/ms-swift)，作为 Transformers 后端的一等多模态模型，现可通过 `swift infer` 进行图像/视频推理，并通过 `swift sft` 进行 LoRA 与全参数微调。详见 [PR #9944](https://github.com/modelscope/ms-swift/pull/9944)。
+- **2026/08/21**: 🤝 MOSS-VL 已正式接入 [ms-swift](https://github.com/modelscope/ms-swift)，现可通过 `swift infer` 进行图像/视频推理，并通过 `swift sft` 进行 LoRA 与全参数微调。详见 [PR #9944](https://github.com/modelscope/ms-swift/pull/9944)。
 - **2026/08/15**: 📚 [MOSS-VL 技术报告](https://arxiv.org/abs/2608.15045)已在 arXiv 发布，系统介绍模型架构、训练课程、实时推理系统，以及完整的离线与流式评测结果。
 - **2026/08/14**: 🤝 MOSS-VL 已接入 [LlamaFactory](https://github.com/hiyouga/LlamaFactory) 主线，LoRA 与全参数微调工作流现已开箱即用。详见[中文教程](https://blog.llamafactory.net/posts/moss_vl_finetuning/)或[英文教程](https://blog.llamafactory.net/en/posts/moss_vl_finetuning/)，也可参阅[模思智能博客](https://mosi.cn/blog/moss-vl-llamafactory)。
 - **2026/08/11**: ⚡ 发布 MOSS-VL 的 24 GiB 量化模型，Instruct-0708 与 Realtime 均提供 FP8 和 NF4 两种版本：**MOSS-VL-Instruct-0708-FP8**（[Hugging Face](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-FP8) | [ModelScope](https://modelscope.cn/models/openmoss/MOSS-VL-Instruct-0708-FP8)）、**MOSS-VL-Instruct-0708-NF4**（[Hugging Face](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-NF4) | [ModelScope](https://www.modelscope.cn/models/openmoss/MOSS-VL-Instruct-0708-NF4)）、**MOSS-VL-Realtime-FP8**（[Hugging Face](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-FP8) | [ModelScope](https://www.modelscope.cn/models/openmoss/MOSS-VL-Realtime-FP8)）和 **MOSS-VL-Realtime-NF4**（[Hugging Face](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-NF4) | [ModelScope](https://modelscope.cn/models/openmoss/MOSS-VL-Realtime-NF4)），支持在单张 24 GB NVIDIA GPU 上高效推理。
@@ -186,7 +186,7 @@ bash finetune/scripts/run_sft_lora.sh
 ```
 详细文档请参阅 [`finetune/README.md`](finetune/README.md)。
 
-MOSS-VL 也已作为一等模型适配到 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)（[PR #10708](https://github.com/hiyouga/LLaMA-Factory/pull/10708)）和 [ms-swift](https://github.com/modelscope/ms-swift)（[PR #9944](https://github.com/modelscope/ms-swift/pull/9944)），两者均可直接进行 LoRA 与全参数微调。
+MOSS-VL 也已适配主流微调框架 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)（[PR #10708](https://github.com/hiyouga/LLaMA-Factory/pull/10708)）和 [ms-swift](https://github.com/modelscope/ms-swift)（[PR #9944](https://github.com/modelscope/ms-swift/pull/9944)），LoRA 与全参数微调均开箱即用。
 
 ### 量化 (Quantization)
 
