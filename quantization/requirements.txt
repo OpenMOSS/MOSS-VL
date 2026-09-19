@@ -1,7 +1,7 @@
 # Quantization extras for MOSS-VL on top of the repository's requirements.txt
 #
 #   pip install -r requirements.txt
-#   pip install -r quant/requirements.txt
+#   pip install -r quantization/requirements.txt
 #   pip install --no-deps llmcompressor==0.10.0
 #
 # llmcompressor 0.10.0 declares torch>=2.9.0, which conflicts with the

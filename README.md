@@ -53,8 +53,8 @@ At the architectural level, **MOSS-VL-Realtime** adopts the following core desig
 ---
 
 ## 🔥 News
-- **2026/09/18**: ⚡ Vendored the specialized SGLang-Omni realtime backend ([`./sglang-omni/`](./sglang-omni/), from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime)) for multi-stream realtime serving: dynamic multi-session scheduling, data-parallel replicas, and substantially faster inference with the [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint.
-- **2026/08/31**: ⚖️ Published the MOSS-VL quantization tutorial ([English](quant/README.md) | [中文](quant/README_zh.md)): our FP8-Dynamic and NF4 recipes, KV-cache quantization, and how to quantize your own fine-tuned (e.g. SFT) MOSS-VL checkpoints.
+- **2026/09/18**: ⚡ Vendored the specialized SGLang-Omni realtime backend [`./third_party/sglang-omni/`](./third_party/sglang-omni/) for multi-stream realtime serving: dynamic multi-session scheduling, data-parallel replicas, and substantially faster inference with the [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint.
+- **2026/08/31**: ⚖️ Published the MOSS-VL quantization tutorial ([English](quantization/README.md) | [中文](quantization/README_zh.md)): our FP8-Dynamic and NF4 recipes, KV-cache quantization, and how to quantize your own fine-tuned (e.g. SFT) MOSS-VL checkpoints.
 - **2026/08/28**: 📋 Released the [list of open-source datasets](docs/open_source_datasets.md) used in MOSS-VL training.
 - **2026/08/21**: 🤝 MOSS-VL is now supported as a first-class multimodal model in [ms-swift](https://github.com/modelscope/ms-swift), enabling image/video inference with `swift infer` and LoRA or full-parameter fine-tuning with `swift sft`. See [PR #9944](https://github.com/modelscope/ms-swift/pull/9944).
 - **2026/08/15**: 📚 Published the [MOSS-VL Technical Report](https://arxiv.org/abs/2608.15045) on arXiv, covering the model architecture, training curriculum, real-time inference system, and comprehensive offline and streaming evaluations.
@@ -63,7 +63,7 @@ At the architectural level, **MOSS-VL-Realtime** adopts the following core desig
 - **2026/07/14**: 🏆 MOSS-VL-Realtime achieved **66.0 on PA@OmniMMI** and received an official shout-out from [OmniMMI](https://github.com/OmniMMI/OmniMMI).
 - **2026/07/14**: 🚀 Released **[MOSS-VL-Realtime](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime)** for real-time video understanding on continuous streams, together with the new **[MOSS-VL-Instruct-0708](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708)** and **[MOSS-VL-Base-0708](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Base-0708)**.
 - **2026/04/24**: 🚀 SGLang officially supports MOSS-VL; see [sgl-project/sglang](https://github.com/sgl-project/sglang).
-- **2026/04/22**: 🚀 Released SGLang-based inference support for MOSS-VL. See [`./sglang/`](./sglang/).
+- **2026/04/22**: 🚀 Released SGLang-based inference support for MOSS-VL. See [`./third_party/sglang/`](./third_party/sglang/).
 - **2026/04/22**: 🤗 Updated HuggingFace inference code to the latest version.
 - **2026/04/08**: 🚀 Released [MOSS-VL-Base-0408](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Base-0408) and [MOSS-VL-Instruct-0408](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0408).
 
@@ -106,7 +106,7 @@ pip install -i https://pypi.org/simple --no-build-isolation -r requirements.txt
 Real-time inference consumes timestamped frames incrementally, so the model can keep perceiving a live video stream while it answers and can accept new questions at any time. The fastest way to replay a local video against its media clock is:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --checkpoint OpenMOSS-Team/MOSS-VL-Realtime \
   --source video \
   --video path/to/example.mp4 \
@@ -121,9 +121,9 @@ Keep `--playback-speed 1` for model inference so frames arrive on the original t
 - `model.online_generate(...)` for queue-based inference workers
 - `--serve` for a FastAPI WebSocket service that accepts external JPEG/PNG frames or replays server-local videos
 
-It also supports streaming JSONL samples, cameras, screen capture, and synthetic sources. See [`realtime_inference/README.md`](./realtime_inference/README.md) for the complete CLI, input format, and WebSocket protocol.
+It also supports streaming JSONL samples, cameras, screen capture, and synthetic sources. See [`inference/realtime/README.md`](./inference/realtime/README.md) for the complete CLI, input format, and WebSocket protocol.
 
-For production multi-stream serving, use the specialized SGLang-Omni backend vendored in [`sglang-omni/`](./sglang-omni/) — dynamic multi-session scheduling and data-parallel replicas deliver substantially higher realtime throughput.
+For production multi-stream serving, use the specialized SGLang-Omni backend vendored in [`third_party/sglang-omni/`](./third_party/sglang-omni/) — dynamic multi-session scheduling and data-parallel replicas deliver substantially higher realtime throughput.
 
 ### Offline Inference
 
@@ -160,19 +160,19 @@ print([item["text"] for item in result["results"]])
 
 ### Specialized FlashAttention-3 Backend
 
-The [`flash-attention-src/`](./flash-attention-src/) directory contains the
+The [`third_party/flash-attention-src/`](./third_party/flash-attention-src/) directory contains the
 FlashAttention-3 backend used by MOSS-VL cross-attention. It adds the
 `cross_kv_boundary` interface, which represents the visible KV prefix of each
 query row with one `int32` value instead of materializing a dense attention
 mask. The source is derived from upstream FlashAttention and is bundled here
 with its original license and attribution. See
-[`flash-attention-src/README.md`](./flash-attention-src/README.md) for the mask
+[`third_party/flash-attention-src/README.md`](./third_party/flash-attention-src/README.md) for the mask
 contract, supported paths, build instructions, and source lineage.
 
 ### Deployment & Inference Engines
 MOSS-VL can also be efficiently deployed with the following inference backends:
-- **SGLang**: see [`sglang/README.md`](./sglang/README.md)
-- **SGLang-Omni (realtime serving)**: specialized multi-session realtime backend with dynamic scheduling and data-parallel replicas — see [`sglang-omni/README.md`](./sglang-omni/README.md)
+- **SGLang**: see [`third_party/sglang/README.md`](./third_party/sglang/README.md)
+- **SGLang-Omni (realtime serving)**: specialized multi-session realtime backend with dynamic scheduling and data-parallel replicas — see [`third_party/sglang-omni/README.md`](./third_party/sglang-omni/README.md)
 
 ### Fine-Tuning
 We provide a lightweight SFT framework built on HuggingFace `transformers.Trainer`. It supports full-parameter training and LoRA, with the vision encoder, language model, and LM head independently controllable.
@@ -187,8 +187,11 @@ bash finetune/scripts/run_sft_lora.sh
 ```
 See [`finetune/README.md`](finetune/README.md) for full documentation.
 
+MOSS-VL is also adapted as a first-class model in [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) ([PR #10708](https://github.com/hiyouga/LLaMA-Factory/pull/10708)) and [ms-swift](https://github.com/modelscope/ms-swift) ([PR #9944](https://github.com/modelscope/ms-swift/pull/9944)) — LoRA and full-parameter fine-tuning work out of the box in both.
+
 ### Quantization
-We release FP8 and NF4 quantized checkpoints for both Instruct-0708 and Realtime, and share the calibration-free PTQ recipes behind them in [`quant/README.md`](quant/README.md) ([中文教程](quant/README_zh.md)). The guide covers selective layer coverage — which language-model Linears to quantize versus which multimodal modules stay in BF16 — runtime KV-cache quantization for Transformers and SGLang, and reproduction scripts that work directly on your own fine-tuned or SFT checkpoints.
+
+We release FP8 and NF4 quantized checkpoints for both Instruct-0708 and Realtime, and share the calibration-free PTQ recipes behind them in [`quantization/README.md`](quantization/README.md) ([中文教程](quantization/README_zh.md)). The guide covers selective layer coverage — which language-model Linears to quantize versus which multimodal modules stay in BF16 — runtime KV-cache quantization for Transformers and SGLang, and reproduction scripts that work directly on your own fine-tuned or SFT checkpoints.
 
 ### Model Download
 

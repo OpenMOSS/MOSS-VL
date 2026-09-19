@@ -189,7 +189,7 @@ The model is open and Apache-2.0 licensed.
 
 - **Run it:** [Quick Start](../README.md#-quick-start)
 - **Download:** [MOSS-VL-Base-0408 / MOSS-VL-Instruct-0408](../README.md#-model-download)
-- **Deploy:** [SGLang guide](../sglang/README.md)
+- **Deploy:** [SGLang guide](../third_party/sglang/README.md)
 - **Fine-tune:** [`finetune/README.md`](../finetune/README.md)
 
 If MOSS-VL is useful in your work, please ⭐ the [repo](https://github.com/OpenMOSS/MOSS-VL) and cite the [technical report](../README.md#-citation).

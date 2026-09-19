@@ -16,7 +16,7 @@
 ## 目录结构
 
 ```
-quant/
+quantization/
 ├── quantize_fp8_dynamic.py     # FP8-Dynamic 一次性转换（llmcompressor）
 ├── quantize_nf4_keep_ends.py   # BitsAndBytes NF4 转换，首尾若干层保留 BF16
 ├── package_kv8_hqq.py          # 为 checkpoint 打包 HQQ INT8 KV Cache（Transformers 侧）
@@ -25,12 +25,12 @@ quant/
 
 ## 环境
 
-量化环境为仓库的 `requirements.txt` 加上 [`quant/requirements.txt`](requirements.txt)，版本固定为产出已发布模型的那一组：
+量化环境为仓库的 `requirements.txt` 加上 [`quantization/requirements.txt`](requirements.txt)，版本固定为产出已发布模型的那一组：
 
 ```bash
 pip install -i https://pypi.org/simple --no-build-isolation -r requirements.txt
-pip install -i https://pypi.org/simple -r quant/requirements.txt
-# 仅 FP8 转换需要；为什么用 --no-deps 见 quant/requirements.txt 注释
+pip install -i https://pypi.org/simple -r quantization/requirements.txt
+# 仅 FP8 转换需要；为什么用 --no-deps 见 quantization/requirements.txt 注释
 pip install -i https://pypi.org/simple --no-deps llmcompressor==0.10.0
 ```
 
@@ -40,18 +40,18 @@ pip install -i https://pypi.org/simple --no-deps llmcompressor==0.10.0
 
 ```bash
 # FP8-Dynamic —— 推荐，一份 checkpoint 同时兼容 Transformers 和 SGLang
-python quant/quantize_fp8_dynamic.py --source /path/to/your-checkpoint --output ./my-model-fp8
+python quantization/quantize_fp8_dynamic.py --source /path/to/your-checkpoint --output ./my-model-fp8
 
 # 或 NF4 Keep-4 —— 显存最低，仅 Transformers
-python quant/quantize_nf4_keep_ends.py --source /path/to/your-checkpoint --output ./my-model-nf4 --verify-reload
+python quantization/quantize_nf4_keep_ends.py --source /path/to/your-checkpoint --output ./my-model-nf4 --verify-reload
 
 # 可选：为 Transformers 打包运行时 HQQ INT8 KV Cache
-python quant/package_kv8_hqq.py --source ./my-model-fp8 --output ./my-model-fp8-kv8
+python quantization/package_kv8_hqq.py --source ./my-model-fp8 --output ./my-model-fp8-kv8
 ```
 
 两个权重转换脚本会从 checkpoint 的 `config.json` 自动读取 `text_config.num_hidden_layers` 和 `text_config.cross_attention_layers` 来决定量化范围，范围异常时会直接报错；需要覆盖时用 `--num-layers`、`--cross-layers` 或 `--keep-end-layers`。
 
-量化后的推理与普通 checkpoint 完全一样：离线图片和视频生成见 [`inference/`](../inference/README.md)，流式推理见 [`realtime_inference/`](../realtime_inference/README.md)。
+量化后的推理与普通 checkpoint 完全一样：离线图片和视频生成见 [`inference/offline/`](../inference/offline/README.md)，流式推理见 [`inference/realtime/`](../inference/realtime/README.md)。
 
 ## FP8-Dynamic
 

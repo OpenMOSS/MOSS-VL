@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../assets/sglang_moss_logo.png" alt="Moss-VL on SGLang" width="360" />
+  <img src="../../assets/sglang_moss_logo.png" alt="Moss-VL on SGLang" width="360" />
 </div>
 
 <div align="center">

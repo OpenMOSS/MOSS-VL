@@ -202,7 +202,7 @@ python finetune/train.py \
 
 Cross-attention keeps its existing default unless an override is provided. To
 use the repository's specialized FA3 kernel for cross-attention only, first
-[install the kernel](../flash-attention-src/README.md#build-and-installation),
+[install the kernel](../third_party/flash-attention-src/README.md#build-and-installation),
 then add `--cross_attention_implementation flash_attention_3` to the training
 command.
 

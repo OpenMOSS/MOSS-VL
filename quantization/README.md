@@ -16,7 +16,7 @@ Pre-quantized checkpoints are available on Hugging Face and ModelScope:
 ## Directory Structure
 
 ```
-quant/
+quantization/
 ├── quantize_fp8_dynamic.py     # FP8-Dynamic one-shot conversion (llmcompressor)
 ├── quantize_nf4_keep_ends.py   # BitsAndBytes NF4 conversion, keeping the first/last layers in BF16
 ├── package_kv8_hqq.py          # Package a checkpoint with HQQ INT8 KV cache for Transformers
@@ -25,12 +25,12 @@ quant/
 
 ## Environment
 
-The quantization stack is the repository's `requirements.txt` plus [`quant/requirements.txt`](requirements.txt), pinned to the versions that produced the released checkpoints:
+The quantization stack is the repository's `requirements.txt` plus [`quantization/requirements.txt`](requirements.txt), pinned to the versions that produced the released checkpoints:
 
 ```bash
 pip install -i https://pypi.org/simple --no-build-isolation -r requirements.txt
-pip install -i https://pypi.org/simple -r quant/requirements.txt
-# FP8 conversion only; see quant/requirements.txt for why --no-deps is needed
+pip install -i https://pypi.org/simple -r quantization/requirements.txt
+# FP8 conversion only; see quantization/requirements.txt for why --no-deps is needed
 pip install -i https://pypi.org/simple --no-deps llmcompressor==0.10.0
 ```
 
@@ -40,18 +40,18 @@ Run one weight-conversion script, then optionally package HQQ INT8 KV cache:
 
 ```bash
 # FP8-Dynamic — recommended, one checkpoint runs on both Transformers and SGLang
-python quant/quantize_fp8_dynamic.py --source /path/to/your-checkpoint --output ./my-model-fp8
+python quantization/quantize_fp8_dynamic.py --source /path/to/your-checkpoint --output ./my-model-fp8
 
 # or NF4 Keep-4 — lowest memory, Transformers only
-python quant/quantize_nf4_keep_ends.py --source /path/to/your-checkpoint --output ./my-model-nf4 --verify-reload
+python quantization/quantize_nf4_keep_ends.py --source /path/to/your-checkpoint --output ./my-model-nf4 --verify-reload
 
 # optional: runtime HQQ INT8 KV cache for Transformers
-python quant/package_kv8_hqq.py --source ./my-model-fp8 --output ./my-model-fp8-kv8
+python quantization/package_kv8_hqq.py --source ./my-model-fp8 --output ./my-model-fp8-kv8
 ```
 
 Both weight scripts read `text_config.num_hidden_layers` and `text_config.cross_attention_layers` from the checkpoint's `config.json` to decide the quantization scope automatically, and abort with an explicit error if the scope looks wrong. Use `--num-layers`, `--cross-layers`, or `--keep-end-layers` to override.
 
-Inference works exactly as with an unquantized checkpoint: see [`inference/`](../inference/README.md) for offline image and video generation and [`realtime_inference/`](../realtime_inference/README.md) for streaming.
+Inference works exactly as with an unquantized checkpoint: see [`inference/offline/`](../inference/offline/README.md) for offline image and video generation and [`inference/realtime/`](../inference/realtime/README.md) for streaming.
 
 ## FP8-Dynamic
 

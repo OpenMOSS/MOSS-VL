@@ -53,8 +53,8 @@ https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 ---
 
 ## 🔥 新闻
-- **2026/09/18**: ⚡ 内置特化的 SGLang-Omni 实时推理后端（[`./sglang-omni/`](./sglang-omni/)，来自 [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime)），用于多路实时推理服务：动态多会话调度、数据并行多副本、推理速度大幅提升，需搭配 [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint 使用。
-- **2026/08/31**: ⚖️ 发布 [MOSS-VL 量化教程](quant/README_zh.md)（[English](quant/README.md)）：包含 FP8-Dynamic 与 NF4 量化配方、KV Cache 量化，以及如何量化自己微调（如 SFT）后的 MOSS-VL checkpoint。
+- **2026/09/18**: ⚡ 内置特化的 SGLang-Omni 实时推理后端 [`./third_party/sglang-omni/`](./third_party/sglang-omni/)，用于多路实时推理服务：动态多会话调度、数据并行多副本、推理速度大幅提升，需搭配 [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint 使用。
+- **2026/08/31**: ⚖️ 发布 [MOSS-VL 量化教程](quantization/README_zh.md)（[English](quantization/README.md)）：包含 FP8-Dynamic 与 NF4 量化配方、KV Cache 量化，以及如何量化自己微调（如 SFT）后的 MOSS-VL checkpoint。
 - **2026/08/28**: 📋 公开 MOSS-VL 训练使用的[开源数据集列表](docs/open_source_datasets.md)。
 - **2026/08/21**: 🤝 MOSS-VL 已正式接入 [ms-swift](https://github.com/modelscope/ms-swift)，作为 Transformers 后端的一等多模态模型，现可通过 `swift infer` 进行图像/视频推理，并通过 `swift sft` 进行 LoRA 与全参数微调。详见 [PR #9944](https://github.com/modelscope/ms-swift/pull/9944)。
 - **2026/08/15**: 📚 [MOSS-VL 技术报告](https://arxiv.org/abs/2608.15045)已在 arXiv 发布，系统介绍模型架构、训练课程、实时推理系统，以及完整的离线与流式评测结果。
@@ -63,7 +63,7 @@ https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 - **2026/07/14**: 🏆 MOSS-VL-Realtime 在 **PA@OmniMMI** 上取得 **66.0**，并获 [OmniMMI 官方仓库](https://github.com/OmniMMI/OmniMMI)祝贺。
 - **2026/07/14**: 🚀 发布 **[MOSS-VL-Realtime](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime)**，面向持续视频流的实时视频理解；同时发布全新的 **[MOSS-VL-Instruct-0708](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708)** 与 **[MOSS-VL-Base-0708](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Base-0708)**。
 - **2026/04/24**: 🚀 SGLang 官方已正式支持 MOSS-VL,详见 [sgl-project/sglang](https://github.com/sgl-project/sglang)。
-- **2026/04/22**: 🚀 推出基于 SGLang 的 MOSS-VL 推理支持,详见 [`./sglang/`](./sglang/)。
+- **2026/04/22**: 🚀 推出基于 SGLang 的 MOSS-VL 推理支持,详见 [`./third_party/sglang/`](./third_party/sglang/)。
 - **2026/04/22**: 🤗 HuggingFace 推理代码更新至最新版本。
 - **2026/04/08**: 🚀 [MOSS-VL-Base-0408](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Base-0408) 与 [MOSS-VL-Instruct-0408](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0408) 正式开源。
 
@@ -106,7 +106,7 @@ pip install -i https://pypi.org/simple --no-build-isolation -r requirements.txt
 实时推理会增量接收带时间戳的视频帧，因此模型可以在持续感知视频流的同时作答，并随时接收新的问题。最快的本地视频回放方式是：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --checkpoint OpenMOSS-Team/MOSS-VL-Realtime \
   --source video \
   --video path/to/example.mp4 \
@@ -121,9 +121,9 @@ CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
 - `model.online_generate(...)`：用于基于队列的推理工作线程
 - `--serve`：启动 FastAPI WebSocket 服务，接收外部 JPEG/PNG 帧或回放服务端本地视频
 
-此外还支持流式 JSONL 样例、摄像头、屏幕采集和合成视频源。完整 CLI、输入格式和 WebSocket 协议请参阅 [`realtime_inference/README.md`](./realtime_inference/README.md)。
+此外还支持流式 JSONL 样例、摄像头、屏幕采集和合成视频源。完整 CLI、输入格式和 WebSocket 协议请参阅 [`inference/realtime/README.md`](./inference/realtime/README.md)。
 
-生产环境多路实时推流推荐使用仓库内置的 SGLang-Omni 特化后端 [`sglang-omni/`](./sglang-omni/)，支持动态多会话调度与数据并行多副本，实时推理吞吐大幅提升。
+生产环境多路实时推流推荐使用仓库内置的 SGLang-Omni 特化后端 [`third_party/sglang-omni/`](./third_party/sglang-omni/)，支持动态多会话调度与数据并行多副本，实时推理吞吐大幅提升。
 
 ### 离线推理
 
@@ -160,18 +160,18 @@ print([item["text"] for item in result["results"]])
 
 ### MOSS-VL 定制 FlashAttention-3 后端
 
-[`flash-attention-src/`](./flash-attention-src/) 目录提供 MOSS-VL
+[`third_party/flash-attention-src/`](./third_party/flash-attention-src/) 目录提供 MOSS-VL
 交叉注意力使用的定制 FlashAttention-3 后端。该版本增加了
 `cross_kv_boundary` 接口，用每个 query 对应的一个 `int32` 边界表示可见
 KV 前缀，避免构造稠密注意力掩码。它是基于上游 FlashAttention 修改的
 MOSS-VL 专用版本，并非通用 FlashAttention 发行版。具体掩码约定、支持范围、
 构建方法、上游版本和许可证信息见
-[`flash-attention-src/README.md`](./flash-attention-src/README.md)。
+[`third_party/flash-attention-src/README.md`](./third_party/flash-attention-src/README.md)。
 
 ### 部署与推理引擎
 本模型同时支持以下推理后端引擎进行高效部署：
-- **SGLang**: 详见 [`sglang/README_zh.md`](./sglang/README_zh.md)
-- **SGLang-Omni（实时推理）**: 支持动态多会话调度与数据并行多副本的特化实时推理后端，详见 [`sglang-omni/README_zh.md`](./sglang-omni/README_zh.md)
+- **SGLang**: 详见 [`third_party/sglang/README_zh.md`](./third_party/sglang/README_zh.md)
+- **SGLang-Omni（实时推理）**: 支持动态多会话调度与数据并行多副本的特化实时推理后端，详见 [`third_party/sglang-omni/README_zh.md`](./third_party/sglang-omni/README_zh.md)
 
 ### 微调 (Fine-Tuning)
 我们提供了一套基于 HuggingFace `transformers.Trainer` 的轻量级 SFT 微调框架,支持全参数训练与 LoRA,且可独立控制视觉编码器、语言模型和 LM Head 是否参与训练。
@@ -186,8 +186,11 @@ bash finetune/scripts/run_sft_lora.sh
 ```
 详细文档请参阅 [`finetune/README.md`](finetune/README.md)。
 
+MOSS-VL 也已作为一等模型适配到 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)（[PR #10708](https://github.com/hiyouga/LLaMA-Factory/pull/10708)）和 [ms-swift](https://github.com/modelscope/ms-swift)（[PR #9944](https://github.com/modelscope/ms-swift/pull/9944)），两者均可直接进行 LoRA 与全参数微调。
+
 ### 量化 (Quantization)
-我们为 Instruct-0708 与 Realtime 提供 FP8 与 NF4 量化模型，并在 [`quant/README_zh.md`](quant/README_zh.md)（[English](quant/README.md)）中公开了背后的免校准 PTQ 量化配方。教程涵盖语言层 Linear 的选择性量化范围、多模态敏感模块的 BF16 保留规则、Transformers 与 SGLang 的运行时 KV Cache 量化，以及可直接作用于你自己微调或 SFT 后 checkpoint 的复现脚本。
+
+我们为 Instruct-0708 与 Realtime 提供 FP8 与 NF4 量化模型，并在 [`quantization/README_zh.md`](quantization/README_zh.md)（[English](quantization/README.md)）中公开了背后的免校准 PTQ 量化配方。教程涵盖语言层 Linear 的选择性量化范围、多模态敏感模块的 BF16 保留规则、Transformers 与 SGLang 的运行时 KV Cache 量化，以及可直接作用于你自己微调或 SFT 后 checkpoint 的复现脚本。
 
 ### 模型下载汇总
 

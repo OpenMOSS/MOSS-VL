@@ -3,7 +3,7 @@
     "prompt": "提取图中的店名、服务员名字、账单号、人数、购买物品的品名数量和金额、总计金额、打印时间，输出json格式，购买物品呈现为list",
     "response": "{\"店名\": \"示例餐厅\", \"服务员\": \"张三\", \"账单号\": \"20260409001\", \"人数\": 2, \"购买物品\": [{\"品名\": \"宫保鸡丁\", \"数量\": 1, \"金额\": 38.0}, {\"品名\": \"米饭\", \"数量\": 2, \"金额\": 4.0}], \"总计金额\": 42.0, \"打印时间\": \"2026-04-09 12:00:00\"}",
     "images": [
-      "../../inference/assets/images/bill.png"
+      "../../inference/offline/assets/images/bill.png"
     ],
     "videos": []
   },
@@ -11,7 +11,7 @@
     "prompt": "输出图中的所有文本及其bbox",
     "response": "图中文本及对应 bbox 如下：\n- \"玫珑瓜\"：[120, 50, 380, 110]\n- \"优质产地直供\"：[100, 130, 400, 170]",
     "images": [
-      "../../inference/assets/images/玫珑瓜.png"
+      "../../inference/offline/assets/images/玫珑瓜.png"
     ],
     "videos": []
   },
@@ -27,7 +27,7 @@
       }
     ],
     "images": [
-      "../../inference/assets/images/霞胧山水.png"
+      "../../inference/offline/assets/images/霞胧山水.png"
     ],
     "videos": []
   },
@@ -44,7 +44,7 @@
     ],
     "images": [],
     "videos": [
-      "../../inference/assets/videos/罗哥扇耳光.mp4"
+      "../../inference/offline/assets/videos/罗哥扇耳光.mp4"
     ]
   }
 ]

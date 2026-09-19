@@ -18,13 +18,13 @@ Supported input sources include:
 
 ## High-Performance Serving with SGLang-Omni
 
-The scripts in this directory are a reference implementation built directly on the Hugging Face runtime: one model process serves one active realtime session. For production deployments that must serve many concurrent realtime streams, use the vendored specialized backend in [`../sglang-omni/`](../sglang-omni/), synchronized from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime):
+The scripts in this directory are a reference implementation built directly on the Hugging Face runtime: one model process serves one active realtime session. For production deployments that must serve many concurrent realtime streams, use the vendored specialized backend in [`../../third_party/sglang-omni/`](../../third_party/sglang-omni/), synchronized from [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime):
 
 - **Multi-stream concurrency**: dynamic multi-session scheduling serves several realtime video streams per replica (4 sessions by default), and data-parallel replicas (`--dp-size`) scale throughput further; tensor parallelism is also supported.
 - **Substantially faster inference**: incremental visual features and KV caching, decode CUDA Graphs, a 60-second sliding visual KV window, and bounded input queues.
 - **Persistent sessions**: prompt interruption, wake-up after silence, and text-history restoration across context limits.
 
-The SGLang-Omni backend loads the SGLang-format checkpoint `OpenMOSS-Team/MOSS-VL-Realtime-SGLANG`, runs in its own Python environment, and exposes a different WebSocket protocol (`/v1/video/realtime`). See [`../sglang-omni/README.md`](../sglang-omni/README.md) and its [realtime cookbook](../sglang-omni/docs/cookbook/moss_vl_realtime.md) for installation, launch, tests, and protocol details.
+The SGLang-Omni backend loads the SGLang-format checkpoint `OpenMOSS-Team/MOSS-VL-Realtime-SGLANG`, runs in its own Python environment, and exposes a different WebSocket protocol (`/v1/video/realtime`). See [`../../third_party/sglang-omni/README.md`](../../third_party/sglang-omni/README.md) and its [realtime cookbook](../../third_party/sglang-omni/docs/cookbook/moss_vl_realtime.md) for installation, launch, tests, and protocol details.
 
 ## Supported Checkpoint
 
@@ -43,7 +43,7 @@ Run commands from the root of this repository.
 Offline video simulated as a realtime stream:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --source video \
   --video /path/to/video.mp4 \
   --sample-fps 1 \
@@ -58,8 +58,8 @@ CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
 The repository includes a streaming JSONL schema example with a dummy video path. Replace `/path/to/example.mp4` in the JSONL file with a local video before running:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
-  --dataset realtime_inference/data/aerial_xinjiang_tour_guide_30s.jsonl \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
+  --dataset inference/realtime/data/aerial_xinjiang_tour_guide_30s.jsonl \
   --dataset-index 0 \
   --playback-speed 1 \
   --max-frames 256
@@ -68,7 +68,7 @@ CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
 Synthetic headless smoke test without loading the model:
 
 ```bash
-python realtime_inference/run_online_inference.py \
+python inference/realtime/run_online_inference.py \
   --dry-run \
   --source synthetic \
   --sample-fps 4 \
@@ -80,7 +80,7 @@ Camera input:
 
 ```bash
 pip install opencv-python-headless
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --source camera \
   --camera-index 0 \
   --sample-fps 1
@@ -90,7 +90,7 @@ Screen input:
 
 ```bash
 pip install mss
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --source screen \
   --monitor-index 1 \
   --sample-fps 1
@@ -109,7 +109,7 @@ pip install fastapi uvicorn websockets
 Start one model process and keep it resident on the selected GPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python realtime_inference/run_online_inference.py \
+CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
   --serve \
   --host 0.0.0.0 \
   --port 8000
