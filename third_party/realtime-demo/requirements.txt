@@ -1,0 +1,78 @@
+# MOSS-VL-Realtime_Demo_App backend — MAIN environment (.venv)
+# Target: GPU box (H200, driver CUDA 12.9), Python 3.12, internal Nexus PyPI mirror.
+#
+# This env runs: FastAPI gateway + HF online_streaming MOSS-VL + ASR adapter (FunASR
+# SenseVoice) + TTS adapter client. It does NOT contain sglang/vllm — those are
+# version-incompatible sidecars (sglang 0.5.10 pins torch 2.9.1 + transformers 5.3.0,
+# while the MOSS-VL streaming processor code targets transformers 4.57.x).
+# See requirements-sglang.txt for the offline-chat inference sidecar env.
+# VLM_DEPLOY=sglang_omni uses an external realtime server. Install that server
+# from https://github.com/fnlp-vision/sglang-omni-realtime in its OWN environment
+# (SGLang 0.5.16 / Transformers 5.12.1 / torch 2.11). Do not merge its pins here.
+# See requirements-vllm.txt for the vLLM-Omni TTS engine env (.venv-vllm,
+# TTS_PROVIDER=vllm_omni): its vllm/torch pins
+# also conflict with this env, so it installs from ../wheelhouse/vllm-omni
+# into its OWN venv, never into .venv.
+#
+# Version rationale — PINNED TO MATCH THE BOARD'S ACTUAL REFERENCE ENV
+# (captured 2026-07-03 from Box 1 `verl--cyx`, /opt/conda py3.12, `pip freeze`):
+# - transformers==4.57.1 : MOSS-VL streaming modeling code (hf_mossvl_streaming_processor)
+#   is written against the 4.55-4.57 API; MOSS-TTS-Nano also pins 4.57.1. (matches board)
+# - torch==2.8.0+cu128 + torchcodec==0.7.0 + torchvision==0.23.0 + torchaudio==2.8.0 :
+#   EXACT board pairing. (Earlier draft used the torch-2.9.1 stack derived from sglang
+#   metadata; the board actually runs 2.8.0 — reverted to match, since the custom
+#   streaming model + FA3 were built/validated against torch 2.8.)
+# - flash-attn : board uses flash_attn 2.8.1 built for cu12/torch2.8 (attn_implementation
+#   ="flash_attention_2"). It ALSO ships a Hopper-native flash_attn_3 built from source at
+#   moss_vl_streaming/8B/train_fa3/Megatron-LM/flash-attention-src/hopper — a real perf win
+#   on H200; build it separately (see build script). Fallback: attn_implementation="sdpa".
+# - Board env has NO sglang/vllm installed → offline mode there runs on the HF path, not
+#   sglang. Treat the sglang sidecar (requirements-sglang.txt) as an optional accelerator
+#   we add, not something the reference depends on.
+
+# Index config intentionally omitted — on the GPU box /etc/pip.conf points at the
+# internal Nexus mirror (external mirrors time out from the air-gapped box).
+# For +cu128 wheels use the board's index or the pytorch cu128 index.
+
+# --- core DL stack (exact board pins) ---
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
+torchcodec==0.7.0
+transformers==4.57.1
+accelerate>=1.10
+safetensors
+joblib
+
+# --- server ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+python-multipart>=0.0.9
+websockets>=12.0
+websocket-client>=1.8          # outbound WS client (OpenAI-realtime-style ASR engines)
+requests>=2.32,<3              # direct dependency: omni health/model queries and memory clients
+aiohttp>=3.9                   # async HTTP client for TTS/ASR sidecar adapters
+psutil>=5.9                    # deployment process identity and bounded shutdown
+
+# --- media / audio ---
+pillow>=10.3
+numpy>=1.26,<3
+soundfile>=0.12
+# NOTE: stdlib `audioop` exists on py3.12 (used for RMS VAD) but was removed in py3.13.
+audioop-lts; python_version >= "3.13"
+
+# --- ASR (default engine: FunASR SenseVoiceSmall + FSMN-VAD, local checkpoints) ---
+funasr==1.3.14
+
+# --- TTS sidecar client deps (MOSS-TTS-Nano runtime, third_party/MOSS-TTS-Nano) ---
+sentencepiece>=0.1.99
+WeTextProcessing>=1.0.4.1
+onnxruntime>=1.20.0
+
+# --- built separately by scripts/build_venv.sh (order matters, needs torch first) ---
+# flash-attn==2.8.1  built for cu12/torch2.8  (board uses this exact build)
+#   MAX_JOBS=48 pip install flash-attn==2.8.1 --no-build-isolation
+# flash_attn_3 (Hopper): optional perf build from
+#   /inspire/qb-ilm/project/video-understanding/public/train/moss_vl_streaming/8B/train_fa3/
+#   Megatron-LM/flash-attention-src/hopper   (pip install -e . in that dir)

@@ -1,0 +1,30 @@
+# requirements-mossrt.txt — .venv-mossrt for the MOSS-TTS-Realtime NATIVE
+# sidecar (upstream fast_api.py run from server/adapters/tts/moss_tts_realtime/
+# sidecar/third_party/MOSS-TTS/moss_tts_realtime). Pins follow the upstream
+# pyproject torch-runtime extra (transformers 5.0 conflicts with .venv's 4.57
+# and .venv-vllm — hence its own venv). +cu128 torch wheels come from the
+# pytorch index (or the box wheelhouse); plain PyPI torch works too if the
+# CUDA minor differs.
+# Build: scripts/build_venv_mossrt.sh
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.9.1
+torchaudio==2.9.1
+# fast_api.py loads the ref-audio prompt via torchcodec (torchaudio's
+# load_with_torchcodec) — REQUIRED or every start_turn errors "TorchCodec is
+# required" → empty audio. 0.8.x pairs with torch 2.9; needs the vendored
+# FFmpeg .so on LD_LIBRARY_PATH (sidecars.py injects it for this provider).
+torchcodec==0.8.1
+transformers==5.0.0
+safetensors==0.6.2
+numpy==2.1.0
+einops==0.8.1
+scipy==1.16.2
+librosa==0.11.0
+tiktoken==0.12.0
+soxr==0.5.0
+orjson==3.11.4
+accelerate
+# sidecar server
+fastapi
+uvicorn
+pydantic

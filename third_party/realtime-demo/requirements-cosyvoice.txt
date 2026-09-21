@@ -1,0 +1,34 @@
+# requirements-cosyvoice.txt — .venv-cosy for the Fun-CosyVoice3 NATIVE sidecar
+# (server/adapters/tts/cosyvoice3/sidecar/). Inference-only trim of the
+# vendored CosyVoice repo's requirements.txt (same pins): training/serving
+# extras dropped (deepspeed, gradio, grpcio, tensorboard, matplotlib, pyarrow,
+# onnx exporters, gdown/wget). wetext (pure python) replaces the abandoned
+# ttsfrd/WeTextProcessing text-norm stack, so plain python3.12 works.
+# Build: scripts/build_venv_cosyvoice.sh
+torch==2.3.1
+torchaudio==2.3.1
+transformers==4.51.3
+conformer==0.3.2
+diffusers==0.29.0
+x-transformers==2.11.24
+hydra-core==1.3.2
+lightning==2.2.4
+omegaconf==2.3.0
+HyperPyYAML==1.2.3
+librosa==0.10.2
+soundfile==0.12.1
+inflect==7.3.1
+wetext==0.0.4
+openai-whisper==20231117
+onnxruntime-gpu==1.18.0
+modelscope==1.20.0
+numpy==1.26.4
+pyworld==0.3.4
+rich==13.7.1
+# TensorRT flow-matching estimator (COSY3_TRT=1, the main non-docker speedup)
+tensorrt-cu12==10.13.3.9
+tensorrt-cu12-bindings==10.13.3.9
+tensorrt-cu12-libs==10.13.3.9
+# sidecar server
+fastapi==0.115.6
+uvicorn==0.30.0

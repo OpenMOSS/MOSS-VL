@@ -53,6 +53,7 @@ At the architectural level, **MOSS-VL-Realtime** adopts the following core desig
 ---
 
 ## 🔥 News
+- **2026/09/21**: 🌐 Bundled the realtime browser demo ([`./third_party/realtime-demo/`](./third_party/realtime-demo/)): camera and screen interaction, ASR/TTS, and long-term memory on top of the SGLang-Omni backend.
 - **2026/09/18**: ⚡ Bundled the specialized SGLang-Omni realtime inference backend ([`./third_party/sglang-omni/`](./third_party/sglang-omni/)): dynamic multi-session scheduling and data-parallel replicas serve multiple concurrent video streams with substantially higher throughput, using the [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint.
 - **2026/08/31**: ⚖️ Published the MOSS-VL quantization tutorial ([English](quantization/README.md) | [中文](quantization/README_zh.md)): our FP8-Dynamic and NF4 recipes, KV-cache quantization, and how to quantize your own fine-tuned (e.g. SFT) MOSS-VL checkpoints.
 - **2026/08/28**: 📋 Released the [list of open-source datasets](docs/open_source_datasets.md) used in MOSS-VL training.
@@ -123,7 +124,7 @@ Keep `--playback-speed 1` for model inference so frames arrive on the original t
 
 It also supports streaming JSONL samples, cameras, screen capture, and synthetic sources. See [`inference/realtime/README.md`](./inference/realtime/README.md) for the complete CLI, input format, and WebSocket protocol.
 
-For production multi-stream serving, use the specialized SGLang-Omni backend in [`third_party/sglang-omni/`](./third_party/sglang-omni/): dynamic multi-session scheduling and data-parallel replicas deliver substantially higher realtime throughput.
+For production multi-stream serving, use the specialized SGLang-Omni backend in [`third_party/sglang-omni/`](./third_party/sglang-omni/): dynamic multi-session scheduling and data-parallel replicas deliver substantially higher realtime throughput. A complete browser demo — camera and screen sharing, ASR/TTS, and long-term memory — is packaged in [`third_party/realtime-demo/`](./third_party/realtime-demo/).
 
 ### Offline Inference
 

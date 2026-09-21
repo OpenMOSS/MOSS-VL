@@ -53,6 +53,7 @@ https://github.com/user-attachments/assets/678ec713-0e01-4792-a5b3-c72e483c4d5f
 ---
 
 ## 🔥 新闻
+- **2026/09/21**: 🌐 内置实时浏览器交互 Demo（[`./third_party/realtime-demo/`](./third_party/realtime-demo/)）：摄像头与屏幕共享、ASR/TTS、长期记忆，运行在 SGLang-Omni 后端之上。
 - **2026/09/18**: ⚡ 内置特化的 SGLang-Omni 实时推理后端（[`./third_party/sglang-omni/`](./third_party/sglang-omni/)）：支持动态多会话调度与数据并行多副本，可同时服务多路视频流、吞吐大幅提升，需搭配 [MOSS-VL-Realtime-SGLANG](https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime-SGLANG) checkpoint 使用。
 - **2026/08/31**: ⚖️ 发布 [MOSS-VL 量化教程](quantization/README_zh.md)（[English](quantization/README.md)）：包含 FP8-Dynamic 与 NF4 量化配方、KV Cache 量化，以及如何量化自己微调（如 SFT）后的 MOSS-VL checkpoint。
 - **2026/08/28**: 📋 公开 MOSS-VL 训练使用的[开源数据集列表](docs/open_source_datasets.md)。
@@ -123,7 +124,7 @@ CUDA_VISIBLE_DEVICES=0 python inference/realtime/run_online_inference.py \
 
 此外还支持流式 JSONL 样例、摄像头、屏幕采集和合成视频源。完整 CLI、输入格式和 WebSocket 协议请参阅 [`inference/realtime/README.md`](./inference/realtime/README.md)。
 
-生产环境多路实时推流推荐使用 [`third_party/sglang-omni/`](./third_party/sglang-omni/) 中的 SGLang-Omni 特化后端：支持动态多会话调度与数据并行多副本，实时推理吞吐大幅提升。
+生产环境多路实时推流推荐使用 [`third_party/sglang-omni/`](./third_party/sglang-omni/) 中的 SGLang-Omni 特化后端：支持动态多会话调度与数据并行多副本，实时推理吞吐大幅提升。完整浏览器 Demo（摄像头/屏幕共享、ASR/TTS、长期记忆）见 [`third_party/realtime-demo/`](./third_party/realtime-demo/)。
 
 ### 离线推理
 

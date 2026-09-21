@@ -1,0 +1,17 @@
+{
+  "name": "pi_agent",
+  "version": "1.0.0",
+  "main": "service.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node service.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "0.74.2",
+    "@earendil-works/pi-ai": "0.74.2"
+  }
+}

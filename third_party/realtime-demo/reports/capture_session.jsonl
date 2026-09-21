@@ -1,0 +1,109 @@
+{"dir": "rest", "event": {"POST /v1/realtime/sessions ->": {"session_id": "gws-3020a1ae8c734908", "ws_token": "yLy7Dk-k83C9OC53vjZ8SQp6x1RtxzaVNP3p_LcPQ_0", "ws_url": "/v1/realtime", "expires_in": 60}}}
+{"dir": "down", "event": {"type": "session.created", "session_id": "video_sess_2a45e2c7076b401f949af417314613f5", "request_id": "video_req_c970b09332e74667960311b5d30a8c92", "model": "moss-vl-realtime", "turn_id": 0}}
+{"dir": "up", "event": {"type": "session.configure", "prompt": "请持续观察画面并描述变化。", "system_prompt": null, "max_new_tokens": 4096, "temperature": 0.0, "top_p": 1.0, "input_queue_capacity": 4}}
+{"dir": "down", "event": {"type": "session.configured", "session_id": "video_sess_2a45e2c7076b401f949af417314613f5", "request_id": "video_req_c970b09332e74667960311b5d30a8c92", "input_queue_capacity": 4, "max_tokens_per_turn": 86400.0, "max_frame_bytes": 33554432, "parked_request_timeout_s": 3600.0}}
+{"dir": "down", "event": {"type": "session.ready", "session_id": "video_sess_2a45e2c7076b401f949af417314613f5", "request_id": "video_req_c970b09332e74667960311b5d30a8c92", "turn_id": 0}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 0, "timestamp": 0.0, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": null, "timestamp": null, "silence_seq": 0}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 0}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 19663}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 0, "timestamp": 0.0, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 1, "timestamp": 0.5, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 1}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 22155}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 0, "timestamp": 0.0, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 0, "timestamp": 0.0, "silence_seq": 1}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 1, "timestamp": 0.5, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 2, "timestamp": 1.0, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 2}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 21409}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 1, "timestamp": 0.5, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 1, "timestamp": 0.5, "silence_seq": 2}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 2, "timestamp": 1.0, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 3, "timestamp": 1.5, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 3}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 22628}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 2, "timestamp": 1.0, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 2, "timestamp": 1.0, "silence_seq": 3}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 3, "timestamp": 1.5, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 4, "timestamp": 2.0, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 4}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 21651}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 3, "timestamp": 1.5, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 3, "timestamp": 1.5, "silence_seq": 4}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 4, "timestamp": 2.0, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 5, "timestamp": 2.5, "final": false, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 5}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 21052}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 4, "timestamp": 2.0, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 4, "timestamp": 2.0, "silence_seq": 5}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 5, "timestamp": 2.5, "final": false, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "up", "event": {"type": "input.prompt", "seq_no": 6, "prompt": "描述一下画面里发生了什么", "final": false}}
+{"dir": "down", "event": {"type": "input.prompt.accepted", "seq_no": 6, "final": false, "pending_events": 2, "interrupts_current_turn": true}}
+{"dir": "up", "event": {"type": "input.frame", "seq_no": 7, "timestamp": 3.0, "final": true, "mime_type": "image/jpeg"}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 5, "timestamp": 2.5, "final": false, "pending_events": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 0, "seq_no": 5, "timestamp": 2.5, "silence_seq": 6}}
+{"dir": "down", "event": {"type": "response.turn.interrupted", "turn_id": 0, "next_turn_id": 1, "seq_no": 6}}
+{"dir": "down", "event": {"type": "input.prompt.processed", "seq_no": 6, "timestamp": 2.5, "final": false, "pending_events": 0, "interrupted_turn_id": 0, "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 1, "seq_no": 6, "timestamp": 2.5, "silence_seq": 7}}
+{"dir": "down", "event": {"type": "input.frame.ready", "seq_no": 7}}
+{"dir": "up", "event": {"event": "<binary-frame>", "bytes": 21052}}
+{"dir": "down", "event": {"type": "input.frame.accepted", "seq_no": 7, "timestamp": 3.0, "final": true, "pending_events": 1, "interrupts_current_turn": false}}
+{"dir": "down", "event": {"type": "input.frame.processed", "seq_no": 7, "timestamp": 3.0, "final": true, "pending_events": 0}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "一名", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "戴着", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "白色", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "耳机", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "的", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "年轻", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "男子", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "正", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "对着", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "摄像头", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "说话", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "，", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "他", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "穿着", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "浅", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "色", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "T", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "恤", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "，", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "背景", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "是一个", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "有", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "其他", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "人在", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "走", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "动", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "的", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "办公室", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "。", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "他", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "一边", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "说话", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "一边", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "用手", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "做", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "着", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "各种", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "手势", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "，", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "包括", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "比", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "出", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "V", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "字", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "手势", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "和", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "用", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "手指", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "着", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "自己的", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "脸", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.text.delta", "delta": "。", "turn_id": 1}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 1, "seq_no": 7, "timestamp": 3.0, "silence_seq": 8}}
+{"dir": "down", "event": {"type": "response.turn.silence", "turn_id": 1, "seq_no": 7, "timestamp": 3.0, "silence_seq": 9}}
+{"dir": "down", "event": {"type": "response.done", "finish_reason": "stop", "turn_id": 1}}
+{"dir": "down", "event": {"type": "session.done"}}
+{"dir": "rest", "event": {"GET /v1/realtime/sessions/{id} ->": "see gateway"}}

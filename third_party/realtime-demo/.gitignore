@@ -1,0 +1,115 @@
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.bak*
+
+# ---------------------------------------------------------------------------
+# Frontend (Vite / node)
+# ---------------------------------------------------------------------------
+node_modules
+dist
+dist-ssr
+*.local
+
+# ---------------------------------------------------------------------------
+# Editor / OS
+# ---------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---------------------------------------------------------------------------
+# Python / backend (server/)
+# ---------------------------------------------------------------------------
+# Virtual envs (built on the GPU box; multi-GB — never commit)
+.venv/
+.venv-*
+env/
+venv/
+.venv-build.log
+/.repro/
+
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+*.egg-info/
+.eggs/
+.python-version
+
+# Packaging / build outputs
+build/
+*.egg
+wheels/
+
+# ---------------------------------------------------------------------------
+# Backend runtime artifacts (generated at run time — not source)
+# ---------------------------------------------------------------------------
+uploads/
+**/uploads/
+*.pid
+# durable history + media store (DATA_DIR; journal/, media/ blobs, SQLite index)
+/data/
+# transient ASR/TTS audio scratch (default work dirs live in /tmp, but ignore any
+# that land in-tree)
+asr_work/
+**/asr_work/
+*.wav.tmp
+
+# local HuggingFace / torch caches if pointed in-tree
+.cache/
+hf_cache/
+.hf_home/
+
+# ---------------------------------------------------------------------------
+# Secrets / local environment
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.deploy.example
+*.secret
+# vllm TTS shadow model dir (symlinks + patched config; built at spawn)
+/models/
+# box-local deployment overrides (see .env.deploy.example)
+/.env.deploy
+# vendored TTS sidecar runtime synth output
+server/adapters/tts/moss_tts_nano/sidecar/backend/uploads/
+# vendored MOSS-TTS fast_api resample scratch (MOSS_TTS_RESAMPLED_AUDIO_DIR default ./tmp)
+server/adapters/tts/moss_tts_realtime/sidecar/third_party/MOSS-TTS/moss_tts_realtime/tmp/
+
+# samp demo media — large binaries, dropped onto the shared FS out-of-band
+# and discovered by the Vite globs in sentences-index.ts / videos-index.ts
+# (a missing clip degrades gracefully; see each index's header). READMEs are
+# the only tracked files in these dirs. Purged from history 2026-07-15.
+src/samp/sentences/*
+!src/samp/sentences/README.md
+src/samp/videos/*
+!src/samp/videos/README.md
+hf_space/
+
+# crash dumps / local test artifacts
+core.*
+e2e_reply.wav
+# box-local TTS model symlinks (absolute paths into the board repo)
+server/adapters/tts/moss_tts_nano/sidecar/third_party/MOSS-TTS-Nano/models/
+# Portable deployment example; the real .env.deploy remains private.
+!.env.deploy.sglang-omni.example
+/.repro

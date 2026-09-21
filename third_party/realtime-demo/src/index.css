@@ -1,0 +1,4763 @@
+/* Apple Liquid Glass Theme — React Integration CSS */
+
+/* ==================== SELF-HOSTED FONT: Satoshi (body/dialogue) ====================
+   woff2 files live in src/assets/fonts/ so Vite hashes them and the relative URLs
+   resolve correctly under the notebook-gateway proxy base. No external CDN. */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Color System using OKLCH */
+  color-scheme: dark light;
+  
+  --bg-canvas: light-dark(oklch(96% 0.005 240), oklch(8% 0.006 240));
+  --bg-panel: light-dark(oklch(100% 0 / 0.65), oklch(14% 0.01 240 / 0.5));
+  --bg-media-scrim: oklch(0% 0 0 / 0.55);
+  --text-on-media: oklch(98% 0 0);
+  /* (mini-orb vessel scrim is declared at its use site — see --orb-vessel — so
+     var(--orb-hue) resolves under the active .theme-* scope) */
+  /* NOTE: oklch() REQUIRES all three of L C H — a two-component oklch is an
+     invalid color, and through var() that means "invalid at computed-value
+     time": the property silently falls to its INITIAL value (transparent for
+     backgrounds), which made every -solid surface see-through. */
+  --bg-panel-solid: light-dark(oklch(100% 0 0), oklch(16% 0.012 240));
+  --bg-overlay-solid: light-dark(oklch(99% 0.003 240 / 0.94), oklch(16% 0.012 245 / 0.96));
+  --bg-button: light-dark(oklch(90% 0.01 240 / 0.8), oklch(20% 0.015 240 / 0.5));
+  --bg-button-hover: light-dark(oklch(85% 0.015 240), oklch(26% 0.02 240));
+  
+  --border-hairline: light-dark(oklch(88% 0.01 240 / 0.4), oklch(22% 0.015 240 / 0.4));
+  --border-active: light-dark(oklch(60% 0.15 240 / 0.35), oklch(50% 0.18 240 / 0.5));
+  
+  --bg-sidebar-expanded: oklch(15% 0.012 245 / 0.55);
+  --border-sidebar-expanded: oklch(100% 0 0 / 0.06);
+  --bg-dropdown-hover: oklch(100% 0 0 / 0.08);
+  
+  --text-primary: light-dark(oklch(18% 0.006 240), oklch(98% 0.002 240));
+  --text-muted: light-dark(oklch(48% 0.012 240), oklch(68% 0.008 240));
+  
+  --accent-live: light-dark(oklch(62% 0.18 145), oklch(75% 0.18 145));
+  --accent-live-rgb: 74, 222, 128;
+  --accent-glow: light-dark(oklch(55% 0.23 280), oklch(68% 0.22 280));
+  --accent-glow-rgb: 138, 75, 230;
+  --accent-error: light-dark(oklch(55% 0.22 25), oklch(62% 0.2 25));
+  
+  /* Cosmic Theme Colors */
+  --accent-cosmic-1: oklch(65% 0.22 30); /* Warm Gold/Amber */
+  --accent-cosmic-2: oklch(60% 0.24 340); /* Warm Pink/Red */
+  
+  /* Quantum Theme Colors */
+  --accent-quantum-1: oklch(70% 0.18 190); /* Cyan/Teal */
+  --accent-quantum-2: oklch(58% 0.23 310); /* Violet/Magenta */
+
+  /* Concentric curves */
+  --radius-outer: 24px;
+  --radius-inner: 16px;
+  --radius-pill: 9999px;
+
+  /* Premium Liquid Glass Logo Theme Customization (translucent & day/night responsive) */
+  --logo-glass-fill: light-dark(oklch(100% 0 0 / 0.3), oklch(14% 0.01 240 / 0.25));
+  --logo-glass-border-start: light-dark(oklch(0% 0 0 / 0.12), oklch(100% 0 0 / 0.22));
+  --logo-glass-border-end: light-dark(oklch(0% 0 0 / 0.04), oklch(100% 0 0 / 0.06));
+  --logo-inner-border: light-dark(oklch(0% 0 0 / 0.03), oklch(100% 0 0 / 0.04));
+  --logo-glass-sheen: light-dark(oklch(0% 0 0 / 0.02), oklch(100% 0 0 / 0.03));
+  --logo-aura-opacity: light-dark(0.35, 0.55);
+
+  /* Spring Physics curve approximation */
+  --spring-easing: cubic-bezier(0.25, 1, 0.5, 1);
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-speed: 0.4s;
+
+  /* Typography — three families only:
+     display/UI = Geist · body/dialogue = Satoshi · technical = JetBrains Mono */
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Light Theme overrides via class */
+body.light-theme {
+  /* Flip color-scheme so light-dark() follows the APP theme, not the OS —
+     without it a dark-OS box resolves every light-dark() to its dark arm in
+     day theme (washed-out chips/tags on the light panels) */
+  color-scheme: light;
+  --bg-canvas: oklch(96% 0.005 240);
+  --bg-panel: oklch(100% 0 / 0.7);
+  --bg-panel-solid: oklch(100% 0 0);
+  --bg-button: oklch(92% 0.008 240 / 0.8);
+  --bg-button-hover: oklch(87% 0.012 240);
+  
+  --bg-sidebar-expanded: oklch(99% 0.003 240 / 0.75);
+  --border-sidebar-expanded: oklch(0% 0 0 / 0.07);
+  --bg-dropdown-hover: oklch(0% 0 0 / 0.05);
+  --bg-overlay-solid: oklch(99% 0.003 240 / 0.94); /* light theme: near-white, not the dark arm */
+  --border-hairline: oklch(88% 0.01 240 / 0.6);
+  --border-active: oklch(60% 0.15 240 / 0.4);
+  --text-primary: oklch(15% 0.006 240);
+  --text-muted: oklch(48% 0.01 240);
+
+  /* Day-theme logo: white-ish frosted glass (explicit values — a global
+     light-dark() would still be wrong here: the logo sits over the DARK
+     sidebar, which stays dark in day theme) */
+  --logo-glass-fill: oklch(100% 0 0 / 0.62);
+  --logo-glass-border-start: oklch(0% 0 0 / 0.14);
+  --logo-glass-border-end: oklch(0% 0 0 / 0.05);
+  --logo-inner-border: oklch(0% 0 0 / 0.05);
+  --logo-glass-sheen: oklch(100% 0 0 / 0.6);
+  --logo-aura-opacity: 0.32;
+}
+
+/* Day-theme logo: a soft drop-shadow gives the white squircle a floating-glass
+   feel. NO separate backdrop tile — that extra element read as a second square
+   around the mark. The SVG squircle is the single glass surface. */
+body.light-theme .sidebar-logo-icon {
+  filter: drop-shadow(0 2px 6px oklch(0% 0 0 / 0.1));
+}
+
+/* Reset and Layout Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background-color: var(--bg-canvas);
+  overflow: hidden;
+  letter-spacing: -0.011em;
+}
+
+/* Headings & titles ride the display family (Geist), no matter the selector */
+h1, h2, h3, h4, h5, h6,
+.card-title {
+  font-family: var(--font-display);
+}
+
+/* Background Atmosphere (Mesh Gradients) */
+.glow-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg-canvas);
+  transition: background-color 0.8s var(--spring-easing);
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  mix-blend-mode: screen;
+  opacity: 0.12;
+  transition: transform 12s infinite alternate ease-in-out, background-color 1s ease;
+}
+
+body.light-theme .blob {
+  mix-blend-mode: multiply;
+  opacity: 0.08;
+}
+
+.blob-1 {
+  width: 50vw;
+  height: 50vw;
+  top: -10%;
+  left: 20%;
+  background: var(--accent-glow);
+  animation: float-1 25s infinite alternate ease-in-out;
+}
+
+.blob-2 {
+  width: 45vw;
+  height: 45vw;
+  bottom: -15%;
+  left: -10%;
+  background: var(--accent-live);
+  animation: float-2 30s infinite alternate ease-in-out;
+}
+
+.blob-3 {
+  width: 35vw;
+  height: 35vw;
+  bottom: 20%;
+  right: -5%;
+  background: oklch(60% 0.22 210);
+  animation: float-3 20s infinite alternate ease-in-out;
+}
+
+@keyframes float-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-80px, 40px) scale(1.15); }
+}
+@keyframes float-2 {
+  0% { transform: translate(0, 0) scale(1.1); }
+  100% { transform: translate(60px, -60px) scale(0.9); }
+}
+@keyframes float-3 {
+  0% { transform: translate(0, 0) scale(0.95); }
+  100% { transform: translate(-40px, -40px) scale(1.1); }
+}
+
+/* Noise overlay */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.022;
+  z-index: 10;
+}
+
+/* App Container (Top bar removed, splits horizontally into Sidebar + Drawer + Workspace) */
+.app-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  /* svh = small viewport: stable full-height on mobile where 100vh overflows
+     under the browser chrome; identical to vh on desktop (declaration-order
+     fallback keeps old browsers on vh). */
+  height: 100vh;
+  height: 100svh;
+}
+
+/* ==================== VERTICAL ICON SIDEBAR ==================== */
+.sidebar-panel {
+  width: 80px;
+  height: 100%;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  /* Jitter-free expansion: width is the ONLY animated property, and the inner
+     geometry (left padding, alignment, icon slots) is IDENTICAL in both states
+     — so the rail slides out while every icon stays pixel-put. 18px centers
+     the 44px icon slots in the collapsed 80px rail: 18 + 44 + 18 = 80. */
+  align-items: flex-start;
+  padding: 16px 18px;
+  position: relative;
+  z-index: 10;
+  transition: width 0.4s var(--spring-easing);
+  flex-shrink: 0;
+}
+
+.sidebar-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0 var(--radius-inner) var(--radius-inner) 0; /* concentric outer edge */
+  background: var(--bg-panel);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-right: 1px solid var(--border-hairline);
+  box-shadow:
+    10px 0 40px oklch(0% 0 0 / 0.08),
+    inset 0 1px 0 oklch(100% 0 0 / 0.08),
+    inset -1px 0 0 oklch(100% 0 0 / 0.05);
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: opacity 0.45s var(--spring-easing), transform 0.5s var(--spring-easing);
+  pointer-events: none;
+}
+
+.sidebar-panel.expanded::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sidebar-panel.expanded {
+  width: 280px;
+  overflow: visible; /* Prevent shadow clipping */
+}
+/* Sidebar Logo Header */
+.sidebar-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  /* Constant in collapsed AND expanded (no horizontal padding): the 44px logo
+     tile shares the nav buttons' icon column exactly, and expanding never
+     nudges anything — only the wordmark fades in beside it. */
+  padding: 8px 0;
+  margin-bottom: 8px;
+  border-radius: var(--radius-inner);
+}
+
+.sidebar-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  /* rigid like the nav tabs: the wordmark mounts on frame 1 of the expand,
+     while the rail is still 80px — without this the tile is the row's only
+     squeezable item and flex crushes it to its 40px min-content, so the logo
+     lurches left and pops back as the width tween catches up */
+  flex-shrink: 0;
+  transition: transform 0.3s var(--spring-bounce);
+}
+
+.sidebar-logo-container:hover .sidebar-logo-icon {
+  transform: scale(1.06);
+}
+
+.sidebar-logo-text {
+  font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  /* nowrap is LOAD-BEARING: the wordmark mounts while the rail is still 80px
+     wide (frame 1 of the width tween), and "-VL" owns a soft break AFTER its
+     hyphen — squeezed, the accent span wrapped onto a second line, the line
+     pair (~46-48px) outgrew the 44px logo tile, and the whole nav column
+     below bounced down-then-up on every expand. One line, always. */
+  white-space: nowrap;
+  animation: fade-in 0.3s ease-out;
+}
+
+.sidebar-logo-text-accent {
+  background: linear-gradient(135deg, var(--accent-glow), var(--accent-live));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Vertical spacing classes using CSS percentages */
+.sidebar-spacer-10 {
+  height: 10%;
+  width: 100%;
+}
+
+.sidebar-spacer-5 {
+  height: 5%;
+  width: 100%;
+}
+
+/* Navigation items in sidebar */
+.nav-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* flex-start in BOTH states (never flips on expand): collapsed rows are as
+     wide as the rail's content box anyway, so nothing shifts visually. */
+  align-items: flex-start;
+}
+
+/* Content-sized (NOT flex: 1): an opening dropdown grows the group DOWNWARD into
+   the flex-1 spacer below it — tabs and spacing above stay exactly put, tabs beneath
+   are pushed down. Only when the column truly runs out of room does the group shrink
+   (min-height: 0) and scroll internally. */
+.nav-group-scroll {
+  flex: 0 1 auto;
+  /* Collapsed rail: NOT a clipping scroll box. overflow:visible lets a hovered
+     tile's scale(1.03) + highlight show fully (no right-edge clip), and — being
+     no longer a scroll container — it can't reflow its 4 children via scroll-
+     anchoring when nowrap labels mount on expand (the old "drop then rise").
+     No padding/margin trick: the button already sits at the panel's content
+     column (icon center x=40), so removing it changes nothing but the clip. */
+  overflow: visible;
+  scrollbar-width: none;
+}
+.nav-group-scroll::-webkit-scrollbar { width: 0; }
+
+/* Become a scroll box ONLY when a History/Demos dropdown is actually open — NOT
+   merely when `.expanded` (that class is present during the 0.4s width tween, so
+   gating on it would re-arm the scroll-anchoring reflow the moment labels mount).
+   A dropdown only exists after a click, when no tween is running. */
+.nav-group-scroll:has(.sidebar-dropdown-list) {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/* In the wide expanded rail a full-width row's scale(1.03) would clip at the
+   panel edge — drop the pop on wide rows (background+border carry the hover). */
+.sidebar-panel.expanded .nav-item-btn:hover {
+  transform: none;
+}
+
+.nav-item-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0; /* rigid tabs: an opening dropdown may push them, never squeeze them */
+  border-radius: var(--radius-inner);
+  display: flex;
+  align-items: center;
+  /* Fixed icon slot in BOTH states: 9px + 24px icon + 9px = 42px content box
+     (44 − 2px border) keeps the icon centered when collapsed AND pinned to the
+     same x when the row widens — only the label spans out to its right. */
+  justify-content: flex-start;
+  padding-left: 9px;
+  /* Never `all`: an animating width would fight the panel's width transition
+     (rubber-band jitter). Only paint properties + hover transform animate. */
+  transition: color 0.25s var(--spring-easing), background-color 0.25s var(--spring-easing),
+    border-color 0.25s var(--spring-easing), transform 0.25s var(--spring-easing);
+  position: relative;
+  gap: 24px;
+}
+
+.sidebar-panel.expanded .nav-item-btn {
+  width: 100%;
+}
+
+.nav-item-btn span {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s;
+  letter-spacing: -0.02em;
+}
+
+.nav-item-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-button);
+  border-color: var(--border-hairline);
+  transform: scale(1.03);
+}
+
+.nav-item-btn.active {
+  color: var(--accent-glow);
+  background: light-dark(oklch(90% 0.1 280 / 0.25), oklch(20% 0.1 280 / 0.25));
+  border-color: var(--border-active);
+}
+
+.nav-item-btn:active {
+  transform: scale(0.96);
+}
+
+/* Phosphor duotone glyphs: keep optical size stable, never let flex squash them */
+.nav-icon,
+.chip-icon,
+.input-icon {
+  flex-shrink: 0;
+}
+
+/* Duotone secondary (fill) layer, tuned per theme. The CSS `opacity` property
+   overrides Phosphor's built-in 0.2 attribute on the fill path: denser on dark
+   glass so it reads, lighter on the day theme so it stays subtle. */
+.nav-icon path[opacity],
+.chip-icon path[opacity],
+.input-icon path[opacity] {
+  opacity: 0.26;
+  transition: opacity 0.3s var(--spring-easing);
+}
+
+body.light-theme .nav-icon path[opacity],
+body.light-theme .chip-icon path[opacity],
+body.light-theme .input-icon path[opacity] {
+  opacity: 0.14;
+}
+
+/* The glass specular sheen belongs to the expanded slab only — hide it on the
+   bare collapsed rail so nothing but the icons shows over the background. */
+.sidebar-panel .card-glass-specular {
+  border-radius: 0 var(--radius-inner) var(--radius-inner) 0;
+  transition: opacity 0.45s var(--spring-easing);
+}
+
+.sidebar-panel:not(.expanded) .card-glass-specular {
+  opacity: 0;
+}
+
+/* Active rail indicator — a soft accent bar on the collapsed rail's edge */
+.sidebar-panel:not(.expanded) .nav-item-btn.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-pill);
+  background: var(--accent-glow);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* ==================== SIDEBAR NESTED DROPDOWNS ==================== */
+.sidebar-dropdown-list {
+  width: 100%;
+  flex-shrink: 0; /* the list itself is rigid too — overflow scrolls in .nav-group-scroll */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  animation: slide-down-fade 0.25s var(--spring-easing);
+}
+
+@keyframes slide-down-fade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sidebar-dropdown-item {
+  font-family: var(--font-body);
+  margin-left: 28px;
+  width: calc(100% - 28px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--radius-inner);
+  transition: all 0.2s var(--spring-easing);
+  letter-spacing: -0.015em;
+  box-sizing: border-box;
+}
+
+.sidebar-dropdown-item:hover {
+  background: var(--bg-dropdown-hover);
+  color: var(--text-primary);
+}
+
+/* Keep long titles inside the row (truncate) so the list fits the rail width */
+.sidebar-dropdown-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.sidebar-dropdown-item:hover svg {
+  color: var(--accent-glow);
+}
+
+.chevron-indicator {
+  transition: transform 0.3s var(--spring-easing);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.chevron-indicator.rotated {
+  transform: rotate(180deg);
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Drawer list items */
+.drawer-list-item {
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  border-radius: var(--radius-inner);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.25s var(--spring-easing);
+}
+
+.drawer-list-item:hover {
+  background: var(--bg-button-hover);
+  border-color: var(--border-active);
+  transform: translateX(4px);
+}
+
+.drawer-list-item svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.drawer-list-item:hover svg {
+  color: var(--accent-glow);
+}
+
+.history-item-time {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* ==================== WORKSPACE CONTAINER & PANES ==================== */
+.workspace-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  height: 100vh; /* Takes full window height since top bar is removed */
+  height: 100svh; /* mobile-safe (see .app-container) */
+}
+
+.workspace-pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.5s var(--spring-easing), transform 0.5s var(--spring-easing), filter 0.5s var(--spring-easing);
+}
+
+/* Page states */
+#chat-workspace {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: all;
+  z-index: 2;
+}
+
+#streaming-workspace {
+  opacity: 0;
+  transform: scale(0.96) translateY(10px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+body.mode-streaming #chat-workspace {
+  opacity: 0;
+  transform: scale(1.04) translateY(-10px);
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(8px);
+}
+
+body.mode-streaming #streaming-workspace {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: all;
+  z-index: 2;
+}
+
+/* Glassmorphism 2.0 Base Card */
+.glass-card {
+  background: var(--bg-panel);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 
+    0 10px 30px oklch(0% 0 0 / 0.04), 
+    0 1px 0px oklch(100% 0 0 / 0.04) inset, 
+    0 0 1px oklch(100% 0 0 / 0.1) inset;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), transform 0.3s var(--spring-easing);
+}
+
+.card-glass-specular {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, oklch(100% 0 0 / 0.06) 0%, oklch(100% 0 0 / 0) 60%);
+  z-index: 1;
+}
+
+/* ==================== OFFLINE CHAT WORKSPACE ==================== */
+.main-chat-container {
+  width: 100%;
+  max-width: 768px; /* Dialogue area restricted to centered 40-60% of viewport width */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  padding: 0 24px;
+  transition: justify-content 0.5s var(--spring-easing);
+}
+
+/* Initial state: Center vertically and horizontally */
+.main-chat-container.initial {
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 60px; /* Offset upward slightly for visual balance */
+}
+
+/* Started state: default flex column layout where messages container grows */
+.main-chat-container.started {
+  justify-content: flex-end;
+}
+
+.chat-messages-container {
+  flex: 1;
+  /* a scroll container clips BOTH axes: 16px side gutters (pulled back by
+     negative margins so bubble alignment is unchanged) keep the aurora
+     canvas spill from being chopped at the flush bubble edges */
+  width: calc(100% + 32px);
+  margin: 0 -16px;
+  overflow-y: auto;
+  padding: 40px 16px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  scroll-behavior: smooth;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+  scrollbar-width: none;
+  
+  /* Glassmorphic gradient mask to softly fade messages out as they scroll up */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 40px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40px);
+}
+
+.chat-messages-container::-webkit-scrollbar {
+  width: 0px;
+}
+
+/* Hide messages container when inited but dialogue not started */
+.main-chat-container.initial .chat-messages-container {
+  flex: 0;
+  height: 0;
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Empty chat greeting (No emojis) */
+.chat-empty-greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-height: 240px;
+  opacity: 1;
+  transform: scale(1);
+  margin-bottom: 24px;
+  transition: max-height 0.5s var(--spring-easing), opacity 0.2s ease, transform 0.2s var(--spring-easing), margin 0.5s var(--spring-easing), padding 0.5s var(--spring-easing);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Fast, IN-PLACE recede (opacity + scale only — no vertical move) so the greeting
+   is fully gone before any layout shifts. It can never be seen being pushed up. */
+.chat-empty-greeting.fade-out {
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+}
+
+.main-chat-container.started .chat-empty-greeting {
+  max-height: 0px;
+  opacity: 0;
+  margin-bottom: 0px;
+  padding: 0;
+  pointer-events: none;
+}
+
+.chat-empty-greeting h2 {
+  font-family: var(--font-body); /* Satoshi — greeting reads as warm content */
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  min-height: 64px;       /* reserve a full line so an empty/cleared phrase never collapses */
+  white-space: nowrap;    /* single line always → height is constant, input never shifts */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gradient-text-fill {
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-glow));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  margin-left: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  animation: blink-cursor 1.0s step-end infinite;
+}
+
+@keyframes blink-cursor {
+  from, to {
+    background-color: var(--accent-glow);
+    box-shadow: 0 0 8px var(--accent-glow), 0 0 16px var(--accent-glow);
+  }
+  50% {
+    background-color: transparent;
+    box-shadow: none; /* fully vanish — no residual glow when the cursor blinks off */
+  }
+}
+
+/* ==================== AURORA FILAMENT (thinking indicator) ====================
+   Painter: src/lib/auroraFilament.ts.
+   The vessel is the empty glass reply bubble (study values: fill α.05, hairline α.10,
+   top sheen); the canvas draws the waving trio ribbons and spills 28px beyond the
+   vessel (must match AURORA_MARGIN in the painter). */
+.thinking-vessel {
+  position: relative;
+  width: min(340px, 62vw);
+  height: 64px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: visible;
+}
+
+.thinking-vessel::after {
+  /* top specular sheen — the glass reads as a vessel, not a flat chip */
+  content: "";
+  position: absolute;
+  inset: 0 0 55% 0;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(rgba(255, 255, 255, 0.07), transparent);
+  pointer-events: none;
+}
+
+body.light-theme .thinking-vessel {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(18, 24, 46, 0.08);
+}
+
+body.light-theme .thinking-vessel::after {
+  background: linear-gradient(rgba(255, 255, 255, 0.28), transparent);
+}
+
+.aurora-filament-canvas {
+  /* the painter sets the exact px box from the vessel's LAYOUT size every
+     frame (transform-immune); these are only pre-first-frame fallbacks and
+     must agree with AURORA_MARGIN */
+  position: absolute;
+  inset: -16px;
+  width: calc(100% + 32px);
+  height: calc(100% + 32px);
+  display: block;
+  pointer-events: none;
+  /* above the ::after sheen — the study composites the glow over vessel+sheen */
+  z-index: 1;
+}
+
+/* light theme: the ribbons are INK (study composite_glow, light branch) —
+   multiply lets them read across the white vessel fill and the page alike
+   instead of washing out on the fill; 0.85 is the study's ink ceiling
+   (a·0.85, "keeps paper luminous") */
+body.light-theme .aurora-filament-canvas {
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+}
+
+/* reduced motion: the painter renders a static two-hue tint; only a slow,
+   non-vestibular opacity breath remains (the designed fallback) */
+@media (prefers-reduced-motion: reduce) {
+  .thinking-vessel {
+    animation: vessel-breath 4s ease-in-out infinite;
+  }
+}
+
+@keyframes vessel-breath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+/* reduced transparency: the vessel goes opaque (legibility first — Apple's own
+   2026 correction); the ribbons remain, they are light, not see-through material */
+@media (prefers-reduced-transparency: reduce) {
+  .thinking-vessel {
+    background: var(--bg-button);
+  }
+}
+
+/* streaming handoff: the trailing characters carry the trio tint — the halo's
+   light "soaking into" the arriving words; settles to plain type when done */
+.shimmer-tail {
+  background-image: linear-gradient(90deg, #8a4be6, #4ade80, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+body.light-theme .shimmer-tail {
+  background-image: linear-gradient(90deg, #6d28d9, #107a3c, #026ca2);
+}
+
+/* Chat Bubbles styling */
+.chat-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  animation: bubble-fade-up 0.4s var(--spring-bounce);
+}
+
+@keyframes bubble-fade-up {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.user-bubble {
+  align-self: flex-end;
+}
+
+.user-bubble .bubble-content {
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  border-radius: 18px 18px 4px 18px;
+  padding: 12px 18px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.ai-bubble {
+  align-self: flex-start;
+}
+
+/* Model replies wear the SAME glass as the thinking vessel (research
+   2026-07-08: glow is transient state, the vessel is the identity — the empty
+   vessel "fills in" with type and stays one object). Same fill/hairline/sheen
+   recipe as .thinking-vessel, auto-sized; deliberately NO backdrop-filter —
+   the vessel material is fill+sheen, far cheaper than .glass-card across a
+   long transcript. Only the NEWEST reply carries a halo: a STATIC coreless
+   remnant (AuroraStaticHalo canvas) that vanishes when the next turn starts. */
+.ai-bubble .bubble-content {
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.ai-bubble .bubble-content:not(.vessel-host) {
+  position: relative;
+  border-radius: 20px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* top specular sheen — same recipe as .thinking-vessel::after */
+.ai-bubble .bubble-content:not(.vessel-host)::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 55% 0;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(rgba(255, 255, 255, 0.07), transparent);
+  pointer-events: none;
+}
+
+/* type rides ABOVE the sheen (and below the halo's rim spill) — without this
+   the light-theme sheen visibly washes the first line of text */
+.ai-bubble .bubble-content:not(.vessel-host) > p {
+  position: relative;
+  z-index: 1;
+}
+
+body.light-theme .ai-bubble .bubble-content:not(.vessel-host) {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(18, 24, 46, 0.08);
+}
+
+body.light-theme .ai-bubble .bubble-content:not(.vessel-host)::after {
+  background: linear-gradient(rgba(255, 255, 255, 0.28), transparent);
+}
+
+/* reduced transparency: same opaque fallback the vessel uses */
+@media (prefers-reduced-transparency: reduce) {
+  .ai-bubble .bubble-content:not(.vessel-host) {
+    background: var(--bg-button);
+  }
+}
+
+/* While the model thinks, the Aurora vessel IS the card: its host wrapper
+   carries no glass-card class and sits flush under the meta row, exactly
+   where the reply bubble will materialize. */
+.ai-bubble .bubble-content.vessel-host {
+  padding: 4px 0 0 0;
+}
+
+/* Unified model-turn bubble: while thinking/streaming the SAME element holds
+   the vessel's designed width, so the ring has a stage before type arrives and
+   the box never swaps mid-turn; the min releases on settle (animated, so short
+   replies narrow gracefully). */
+.ai-bubble .bubble-content:not(.vessel-host) {
+  min-width: 0;
+  /* Shrink-wrap the reply's own text instead of stretching to the widest
+     flex-column sibling (the meta row / action buttons) — otherwise a short
+     reply keeps their width. max-width:100% caps it at the 80% bubble column
+     so long replies still wrap. fit-content composes with the min-width
+     streaming animation: the animating min-width floors the box, so settle
+     still narrows smoothly from the vessel width down to the text. */
+  width: fit-content;
+  max-width: 100%;
+  transition: min-width 0.35s var(--spring-easing);
+}
+
+.ai-bubble .bubble-content.vessel-live {
+  min-width: min(340px, 62vw);
+}
+
+/* The empty vessel stands exactly ONE text line tall (padding + line box), so
+   a one-line reply settles with ZERO height change — taller replies only ever
+   grow while streaming, never shrink at the end. */
+.ai-bubble .bubble-content.vessel-live p {
+  min-height: 1.65em; /* = the bubble's line-height → one line box */
+}
+
+.bubble-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.latency-pill {
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+/* Floating Input Area */
+.chat-input-wrapper {
+  width: 100%;
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  padding: 16px 0 24px 0;
+  pointer-events: all;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: transform 0.6s var(--spring-easing), padding 0.6s var(--spring-easing);
+}
+
+.main-chat-container.initial .chat-input-wrapper {
+  padding: 0;
+}
+
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  box-shadow:
+    0 20px 40px oklch(0% 0 0 / 0.12),
+    0 1px 0px oklch(100% 0 0 / 0.05) inset;
+  pointer-events: all;
+}
+
+.chat-input-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-primary);
+  font-size: 16px;
+  padding: 13px 16px;
+}
+
+.chat-input-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.input-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--spring-easing);
+  position: relative;
+}
+
+.input-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-button);
+}
+
+/* Dictation sits a step away from send — different verbs, and a fat-finger
+   buffer before the destructive-ish "send now" action */
+.chat-input-bar .mic-btn {
+  margin-right: 10px;
+}
+
+/* ---- image attachments (paperclip) ---- */
+.input-action-btn.has-attachments {
+  color: var(--accent-glow);
+}
+
+/* pending attachments float as chips above the input pill */
+.attachment-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 8px 10px;
+}
+
+.attachment-chip {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-button);
+}
+
+.attachment-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.attachment-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: oklch(0% 0 0 / 0.55);
+  color: oklch(100% 0 0 / 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---- Liquid-Glass upload progress puck (chat chips · live PIP · file bead).
+   The iOS media-send treatment on the house glass: the thumbnail is already
+   showing, and a small dark-frosted disc floats centered on it carrying a
+   thin white ring — track ~26% white, determinate fill with round caps,
+   indeterminate 30% arc spinning while a length is unknown (server-side
+   poster extraction). The puck stays DARK glass with a WHITE ring on both
+   page themes: it always sits over media, never over the page. */
+.glass-progress {
+  position: relative;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(22% 0.012 260 / 0.42);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  border: 1px solid oklch(100% 0 0 / 0.28);
+  box-shadow:
+    inset 0 1px 1px oklch(100% 0 0 / 0.35),
+    inset 0 -1px 2px oklch(0% 0 0 / 0.2),
+    0 2px 8px oklch(0% 0 0 / 0.28);
+}
+.glass-progress svg {
+  width: 76%;
+  height: 76%;
+  display: block;
+  transform: rotate(-90deg); /* ring fills from 12 o'clock */
+}
+.glass-progress circle {
+  fill: none;
+  stroke-width: 4;
+}
+.glass-progress .gp-track {
+  stroke: oklch(100% 0 0 / 0.26);
+}
+.glass-progress .gp-fill {
+  stroke: oklch(100% 0 0 / 0.95);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.25s ease;
+}
+.glass-progress.indeterminate svg {
+  animation: gp-spin 0.9s linear infinite;
+}
+@keyframes gp-spin {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(270deg); }
+}
+/* ---- in-flight chat chip: the thumbnail IS the progress (blur-up reveal).
+   A frosted translucent copy sits underneath; the sharp copy fills it
+   bottom-up with the uploaded fraction. --fill is @property-registered so
+   the fill line GLIDES between progress events instead of stepping. All
+   bytes up + server still processing → fully sharp under a quiet glass
+   shimmer. The stack only mounts when a transfer outlives its 300ms grace
+   window (attachment.slow) — quick uploads render the plain thumbnail
+   directly, no frost flash. */
+@property --fill {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+.chip-fill-stack {
+  position: absolute;
+  inset: 0;
+  transition: --fill 0.3s ease;
+}
+.chip-fill-stack img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.chip-img-frost {
+  filter: blur(7px) saturate(1.6);
+  transform: scale(1.15); /* push the blur's edge bleed outside the chip */
+  opacity: 0;
+  animation: chip-frost-in 0.25s ease forwards;
+}
+@keyframes chip-frost-in {
+  to { opacity: 0.5; }
+}
+.chip-img-sharp {
+  mask-image: linear-gradient(to top, black calc(var(--fill) - 6%), transparent calc(var(--fill) + 6%));
+  -webkit-mask-image: linear-gradient(to top, black calc(var(--fill) - 6%), transparent calc(var(--fill) + 6%));
+}
+.chip-fill-stack.processing .chip-img-sharp {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+/* server-side processing: a slow light sweep over the finished thumb */
+.chip-fill-stack.processing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, oklch(100% 0 0 / 0.3) 50%, transparent 68%) 0 0 / 250% 100%;
+  animation: chip-shimmer 1.15s linear infinite;
+  pointer-events: none;
+}
+@keyframes chip-shimmer {
+  from { background-position: 130% 0; }
+  to { background-position: -130% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-img-frost { animation-duration: 0.01ms; }
+  .chip-fill-stack.processing::after { animation: none; }
+}
+
+/* uploads pending → the send bead waits, quietly */
+.send-message-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* live PIP: the transfer puck floats centered over the file's first frame
+   (fullscreen user-focus AND the small model-focus pip, scaled down there) */
+.pip-upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4; /* over the video, under the viewer dots (5) */
+  pointer-events: none;
+}
+.ai-stream-box[data-focus="model"] .pip-upload-overlay .glass-progress {
+  transform: scale(0.72);
+}
+
+/* images inside a sent user bubble */
+.bubble-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.bubble-attachment-img {
+  max-width: 180px;
+  max-height: 140px;
+  border-radius: 10px;
+  border: 1px solid var(--border-hairline);
+  display: block;
+}
+
+/* any thumbnail that opens the media viewer */
+.media-clickable {
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s var(--spring-easing);
+}
+
+.media-clickable:hover {
+  filter: brightness(1.06);
+  transform: scale(1.015);
+}
+
+/* bubble video preview: poster-only inline, playback lives in the viewer */
+.bubble-video-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.bubble-video-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: light-dark(oklch(30% 0.02 250), oklch(95% 0 0));
+  background: var(--bg-panel);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 2px 8px oklch(0% 0 0 / 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+/* ==================== MEDIA VIEWER (liquid-glass lightbox) ====================
+   One floating glass frame over a dimmed blur scrim (Liquid Glass restricts the
+   material to the floating element — the page behind melts away). Dots follow
+   macOS traffic-light geometry but wear the house glass color: neutral beads
+   with a specular top highlight + inner base shade (the 3D "pressable" read);
+   their glyphs reveal on hover, macOS-style. */
+.media-viewer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(12% 0.012 250 / 0.38);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  animation: viewer-fade-in 0.2s ease-out;
+}
+
+.media-viewer {
+  position: relative;
+  padding: 12px;
+  border-radius: 24px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-hairline);
+  box-shadow:
+    0 24px 70px oklch(0% 0 0 / 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 1px rgba(255, 255, 255, 0.10);
+  animation: viewer-spring-in 0.26s var(--spring-bounce);
+}
+
+.media-viewer-content {
+  display: block;
+  max-width: min(82vw, 1100px);
+  max-height: 78vh;
+  border-radius: 14px;
+}
+
+@keyframes viewer-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes viewer-spring-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---- live session replay (read-only) — rides the media-viewer scrim ---- */
+.replay-viewer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(92vw, 640px);
+  max-height: 86vh;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-hairline);
+  box-shadow:
+    0 24px 70px oklch(0% 0 0 / 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 1px rgba(255, 255, 255, 0.10);
+  animation: viewer-spring-in 0.26s var(--spring-bounce);
+}
+.replay-viewer.has-video {
+  width: min(92vw, 860px);
+}
+/* the specular sheen is a square inset-0 layer — without inheriting the
+   viewer's radius its bright corner pokes past the rounded top-left */
+.replay-viewer .card-glass-specular {
+  border-radius: inherit;
+}
+
+.replay-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.replay-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.replay-title {
+  font-family: var(--font-display, var(--font-body));
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.replay-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.replay-video {
+  width: 100%;
+  max-height: 44vh;
+  border-radius: 14px;
+  background: oklch(12% 0.012 250);
+  outline: 1px solid var(--border-hairline);
+}
+
+/* the shared log styles do the bubbles; the replay list adds its own frame */
+.replay-log {
+  flex: 1;
+  min-height: 120px;
+  max-height: 60vh;
+  padding: 4px 2px;
+}
+.replay-viewer.has-video .replay-log {
+  max-height: 32vh;
+}
+
+/* the line the video is currently passing */
+.log-entry.replay-active {
+  border-color: var(--accent-live);
+  background: oklch(100% 0 0 / 0.05);
+}
+
+.replay-ts-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hairline);
+  background: oklch(100% 0 0 / 0.04);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.replay-ts-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-live);
+  background: oklch(100% 0 0 / 0.08);
+}
+
+/* ---- the two bead dots (close · info) ---- */
+.viewer-dots {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+}
+
+.viewer-dot {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* both dots wear the SAME house-glass neutral; the sphere shading (specular
+     at 30/28 + darker base) plus the inset top-light/bottom-shade pair gives
+     the 3D "this is a physical, pressable bead" read */
+  background: radial-gradient(circle at 30% 28%,
+    rgba(255, 255, 255, 0.95),
+    oklch(85% 0.01 250 / 0.75) 55%,
+    oklch(68% 0.015 250 / 0.72));
+  border: 1px solid oklch(60% 0.012 250 / 0.45);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 2px oklch(0% 0 0 / 0.22),
+    0 1px 3px oklch(0% 0 0 / 0.22);
+  transition: transform 0.15s var(--spring-bounce), filter 0.15s ease;
+}
+
+body:not(.light-theme) .viewer-dot {
+  background: radial-gradient(circle at 30% 28%,
+    rgba(255, 255, 255, 0.55),
+    oklch(55% 0.012 250 / 0.6) 55%,
+    oklch(38% 0.015 250 / 0.65));
+  border-color: oklch(75% 0.01 250 / 0.28);
+}
+
+.viewer-dot:hover {
+  transform: scale(1.18);
+  filter: brightness(1.08);
+}
+
+.viewer-dot:active {
+  transform: scale(0.92);
+  filter: brightness(0.94);
+}
+
+/* glyphs surface when the pointer reaches the dot row (macOS reveal) */
+.viewer-dot-glyph {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 700;
+  color: oklch(32% 0.015 250 / 0.85);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  user-select: none;
+  pointer-events: none;
+}
+
+.viewer-dots:hover .viewer-dot-glyph {
+  opacity: 1;
+}
+
+/* ---- hover info card ---- */
+/* dot + card form ONE hover zone; the anchor's transparent padding bridges
+   the visual gap so the pointer never "leaves" en route to the card */
+.viewer-info-zone {
+  position: relative;
+  display: flex;
+}
+
+.media-info-anchor {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 10px; /* invisible hover bridge */
+}
+
+.media-info-card {
+  min-width: 200px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-overlay-solid);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 10px 30px oklch(0% 0 0 / 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  font-size: 12px;
+  user-select: text; /* hash/values are copyable while the card stays hovered */
+  cursor: default;
+  animation: modal-spring-in 0.18s var(--spring-easing);
+  transform-origin: top left;
+}
+
+.media-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.media-info-key {
+  color: var(--text-muted);
+}
+
+.media-info-val {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .media-viewer,
+  .media-info-card {
+    background: var(--bg-panel-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-viewer {
+    animation: viewer-fade-in 0.15s ease-out;
+  }
+}
+
+/* Mic animation — recording wears the aurora violet (the scene's accent),
+   not alarm-red: dictation is an active state, not an error */
+.mic-btn.recording {
+  color: light-dark(oklch(46% 0.19 296), oklch(76% 0.13 296));
+  background: light-dark(oklch(93% 0.05 296 / 0.55), oklch(27% 0.07 296 / 0.45));
+}
+
+.mic-ripple-ring {
+  position: absolute;
+  inset: -4px;
+  border: 1.5px solid var(--accent-live);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+}
+
+.mic-btn.recording .mic-ripple-ring {
+  animation: mic-ripple 1.5s infinite var(--spring-easing);
+}
+
+@keyframes mic-ripple {
+  0% { opacity: 0.6; transform: scale(0.95); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+.send-message-btn {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s var(--spring-bounce);
+  box-shadow: 0 4px 10px oklch(0% 0 0 / 0.15);
+}
+
+.send-message-btn:hover {
+  transform: scale(1.06);
+}
+
+.send-message-btn:active {
+  transform: scale(0.94);
+}
+
+/* streaming: the same button is the ⏹ stop control, with a breathing ring so
+   it reads as "live, press to cut" without shouting */
+.send-message-btn.generating {
+  animation: stop-btn-breathe 1.6s ease-in-out infinite;
+}
+@keyframes stop-btn-breathe {
+  0%, 100% { box-shadow: 0 4px 10px oklch(0% 0 0 / 0.15), 0 0 0 0 oklch(60% 0 0 / 0.35); }
+  50%      { box-shadow: 0 4px 10px oklch(0% 0 0 / 0.15), 0 0 0 6px oklch(60% 0 0 / 0); }
+}
+
+/* ---- bubble action row (copy / edit / read / regenerate) ---- */
+.msg-actions {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.chat-bubble:hover .msg-actions,
+.msg-actions:focus-within,
+.msg-actions:has(.msg-action-btn.active) {
+  opacity: 1;
+}
+/* touch devices have no hover — keep the row faintly present */
+@media (pointer: coarse) {
+  .msg-actions { opacity: 0.55; }
+}
+.user-bubble .msg-actions {
+  justify-content: flex-end;
+}
+.msg-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.msg-action-btn:hover {
+  color: var(--text-primary);
+  background: oklch(50% 0 0 / 0.12);
+}
+.msg-action-btn.active {
+  color: var(--accent-live);
+}
+.msg-action-btn .spin {
+  animation: msg-action-spin 0.9s linear infinite;
+}
+@keyframes msg-action-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== GENERATIVE UI CARDS ==================== */
+.gen-ui-card {
+  position: relative;
+  background: var(--bg-panel);
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--border-hairline);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 20px;
+  margin-top: 10px;
+  box-shadow: 
+    0 12px 30px oklch(0% 0 0 / 0.04), 
+    0 1px 0px oklch(100% 0 0 / 0.04) inset;
+  overflow: hidden;
+  transition: transform 0.3s var(--spring-easing), border-color 0.3s, box-shadow 0.3s;
+}
+
+.gen-ui-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 16px 36px oklch(0% 0 0 / 0.06), 
+    0 1px 0px oklch(100% 0 0 / 0.06) inset;
+}
+
+.gen-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+/* Sparklines/Performance Bar grids */
+.metrics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.metric-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.metric-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.metric-bar-container {
+  height: 6px;
+  background: var(--bg-button);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 0.5px solid var(--border-hairline);
+}
+
+.metric-bar {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent-glow), var(--accent-live));
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-footer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-hairline);
+  padding-top: 12px;
+}
+
+.trust-score {
+  font-weight: 600;
+}
+
+.audio-scrub-trigger {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.audio-scrub-trigger:hover {
+  color: var(--accent-glow);
+}
+
+/* Audio Player Card styling */
+.audio-player-card {
+  padding: 16px;
+  max-width: 440px;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.player-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s var(--spring-bounce);
+  box-shadow: 0 4px 10px oklch(0% 0 0 / 0.1);
+}
+
+.player-play-btn:hover {
+  transform: scale(1.08);
+}
+
+.player-play-btn:active {
+  transform: scale(0.94);
+}
+
+.waveform-scrubber {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+}
+
+.wave-bar {
+  flex: 1;
+  background: var(--border-hairline);
+  border-radius: 2px;
+  transition: background-color 0.2s, height 0.3s var(--spring-easing);
+  cursor: pointer;
+}
+
+.wave-bar.active {
+  background: var(--accent-glow);
+}
+
+.wave-bar:hover {
+  background: var(--accent-live);
+}
+
+.player-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 76px;
+  text-align: right;
+}
+
+/* Code block card */
+.code-panel-card {
+  padding: 0;
+  border-radius: var(--radius-inner);
+  overflow: hidden;
+}
+
+.code-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.code-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-filename {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.btn-copy-code {
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s var(--spring-easing);
+}
+
+.btn-copy-code:hover {
+  background: var(--bg-button-hover);
+  border-color: var(--border-active);
+}
+
+.code-content-view {
+  margin: 0;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.18);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.code-content-view span.keyword { color: #ff7b72; }
+.code-content-view span.property { color: #79c0ff; }
+.code-content-view span.value { color: #a5d6ff; }
+.code-content-view span.comment { color: #8b949e; font-style: italic; }
+
+/* ==================== STREAMING VIDEO-CHAT WORKSPACE ==================== */
+/* ==================== STREAMING VIDEO-CHAT WORKSPACE ==================== */
+#streaming-workspace {
+  padding: 24px;
+  gap: 24px;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-video-container {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 560px; /* Golden split minimum */
+}
+
+/* Immersive AI stream box */
+.ai-stream-box {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-outer);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-panel);
+  box-shadow: 
+    0 15px 45px oklch(0% 0 0 / 0.1), 
+    0 1px 0px oklch(100% 0 0 / 0.05) inset;
+  transition: all 0.5s var(--spring-easing);
+}
+
+/* (the stream status pill was removed — the orb + transcript carry state) */
+
+
+
+
+
+
+.panel-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: none; /* Hidden by default on desktop */
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  border-left: 1px solid var(--border-hairline);
+}
+
+/* Standalone stage toggle (the status pill it lived in is gone): a small
+   glass bead at the stage's top-left, still narrow-viewport-only via the
+   base .panel-toggle-btn display rules. */
+.stage-panel-toggle {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 6;
+  margin: 0;
+  padding: 4px;
+  border-left: none;
+  width: 34px;
+  height: 34px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 4px 14px oklch(0% 0 0 / 0.15);
+}
+
+.panel-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Voice Visualizer Container (Spatial computing 3D sphere) */
+.streaming-visualizer-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: all 0.5s var(--spring-easing);
+}
+
+canvas#streaming-voice-canvas {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+}
+body.light-theme canvas#streaming-voice-canvas {
+  mix-blend-mode: multiply;
+}
+
+/* L1 ambient halo (live_page_orb.md §3) — the glow the orb throws into the room.
+   Falloff lives in the gradient itself (no filter: blur), so the per-frame
+   scale(1 + 0.10·intensity) pulse from the RAF loop stays compositor-only. */
+.avatar-orb-glow {
+  position: absolute;
+  width: 112%;
+  height: 112%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--accent-glow) 0%, rgba(var(--accent-glow-rgb), 0.35) 40%, rgba(var(--accent-glow-rgb), 0) 72%);
+  z-index: 1;
+  opacity: 0.22;
+  transition: background 1s ease, width 0.5s var(--spring-easing), height 0.5s var(--spring-easing);
+}
+
+/* The glass SHELL overlay (minimized ball only): fresnel rim haze, lensing
+   whisper, rim-light arcs, speculars and bottom caustic — pre-rendered once per
+   resize/theme by the RAF effect (App.tsx buildGlassShell). Deliberately NO
+   mix-blend-mode: the page blend can only ADD light on dark (the shell washed
+   out over bright video) and only REMOVE it on light (its glow degenerated into
+   a naked white ring) — normal compositing keeps the glass edge stable over any
+   video luminance on both themes. The shell exists only on the MINIMIZED ball
+   (user-focus): the RAF loop drives opacity with the same sphereT lerp that
+   gates the canvas geometry, so the glass materializes in step with the morph. */
+canvas#glass-shell-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* (The floating captions overlay — the stage subtitle bar — is retired: the
+   model's rolling sentence renders as the provisional tail bubble in the
+   session transcript. See .log-entry.caption-pending.) */
+
+/* Floating User Picture-In-Picture */
+.user-pip-box {
+  border-radius: var(--radius-inner);
+  overflow: hidden;
+  box-shadow: 
+    0 15px 35px oklch(0% 0 0 / 0.2), 
+    0 1px 0px oklch(100% 0 0 / 0.05) inset;
+  transition: all 0.5s var(--spring-easing);
+}
+
+.local-camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror camera feed */
+  transition: opacity 0.4s;
+}
+
+.local-camera-feed.hidden {
+  opacity: 0;
+  display: none;
+}
+
+/* video-FILE playback: never selfie-mirrored, letterboxed (not cropped) */
+.local-camera-feed.is-file {
+  transform: none;
+  object-fit: contain;
+  background: oklch(10% 0.01 250);
+}
+
+/* a shared screen is a DOCUMENT, not a selfie: no mirror (text must read
+   forward) and letterbox instead of crop */
+.local-camera-feed.is-screen {
+  transform: none;
+  object-fit: contain;
+  background: oklch(10% 0.01 250);
+}
+
+/* any LIVE media source wears the aurora violet on the unified source bead
+   (same accent as dictation): camera, screen, video file, or image. For a
+   picked file the violet marks a COMPLETED upload — the bead stays neutral
+   while bytes move (the PIP puck carries the progress). */
+.call-control-btn.source-live {
+  color: light-dark(oklch(46% 0.19 296), oklch(76% 0.13 296));
+  background: light-dark(oklch(93% 0.05 296 / 0.55), oklch(27% 0.07 296 / 0.45));
+}
+
+/* video-file beads on the pip: reuse the media viewer's dot recipe; while the
+   session is live the × bead is inert (source locked) */
+.viewer-dots.pip-dots {
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+}
+
+/* fullscreen (user-focus) the pip IS the stage — pull the beads well inside
+   the rounded corner instead of hugging it */
+.ai-stream-box[data-focus="user"] .viewer-dots.pip-dots {
+  top: 22px;
+  left: 22px;
+}
+
+.viewer-dot:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.viewer-dot:disabled:hover {
+  transform: none;
+  filter: none;
+}
+
+/* the info card cannot fit inside the 190px minimized pip (overflow:hidden
+   clips it) — it opens only in the fullscreen (user-focus) view; the dot's
+   tooltip still answers in the small pip */
+.ai-stream-box[data-focus="model"] .pip-dots .media-info-anchor {
+  display: none;
+}
+
+.user-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  gap: 8px;
+}
+
+.user-avatar-fallback .fallback-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-panel-solid);
+  border: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.user-avatar-fallback .fallback-name {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pip-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: oklch(0% 0 0 / 0.5);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--border-hairline);
+  z-index: 2;
+  transition: opacity 0.3s;
+}
+
+/* Call Controls Panel wrapper */
+.call-controls-wrapper {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+.call-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  box-shadow: 
+    0 25px 50px oklch(0% 0 0 / 0.25), 
+    0 1px 0px oklch(100% 0 0 / 0.05) inset;
+}
+
+.call-control-btn {
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s var(--spring-easing);
+}
+
+.call-control-btn:hover {
+  background: var(--bg-button-hover);
+  transform: scale(1.08);
+}
+
+.call-control-btn:active {
+  transform: scale(0.94);
+}
+
+/* Mute states */
+/* muted mic (connected): quiet neutral — the slashed glyph carries the state;
+   red is reserved for errors/hang-up in this scene */
+.call-control-btn.muted {
+  color: var(--text-muted);
+  background: var(--bg-button);
+}
+
+.call-control-btn.video-off {
+  color: var(--text-muted);
+}
+
+/* the Input button while its text field is out: a quiet "open" affordance
+   that never fights the hold state (ptt-holding sets its own border/color) */
+.call-control-btn.input-btn.text-open:not(.ptt-holding) {
+  border-color: var(--border-active);
+}
+
+/* ---- video source menu (camera / screen share) ----
+   Liquid-Glass menu: it MORPHS out of the camera bead (WWDC25 menu behavior —
+   the source control morphs into its overlay, keeping visual continuity).
+   Frosted translucent material the background filters through, hairline rim,
+   specular top edge, spring pop anchored at the bead's center. */
+.video-source-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.video-source-menu {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  min-width: 170px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 30;
+  border-radius: 16px;
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.14), oklch(100% 0 0 / 0.05));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--border-hairline);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.22),
+    0 12px 32px oklch(0% 0 0 / 0.35);
+  transform: translateX(-50%);
+  transform-origin: 50% calc(100% + 33px); /* the bead's center below */
+  animation: video-menu-morph 0.34s var(--spring-easing);
+}
+body.light-theme .video-source-menu {
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.75), oklch(100% 0 0 / 0.45));
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.9),
+    0 12px 32px oklch(0% 0 0 / 0.16);
+}
+@keyframes video-menu-morph {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.5); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.video-source-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.video-source-option:hover {
+  background: oklch(100% 0 0 / 0.10);
+}
+body.light-theme .video-source-option:hover {
+  background: oklch(0% 0 0 / 0.06);
+}
+.video-source-option.active {
+  color: var(--accent-live);
+}
+.video-source-live-dot {
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-live);
+  box-shadow: 0 0 6px color-mix(in oklch, var(--accent-live) 70%, transparent);
+}
+/* mid-session footnote under the Upload row: picking a file re-bases the
+   timeline onto the running session clock */
+.video-source-hint {
+  max-width: 216px;
+  padding: 2px 12px 7px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  white-space: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+  .video-source-menu { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .video-source-menu {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: oklch(22% 0.01 260 / 0.97);
+  }
+  body.light-theme .video-source-menu {
+    background: oklch(97% 0 0 / 0.98);
+  }
+}
+
+/* ---- screen-surface pre-picker (centered glass sheet) ----
+   Our own surface-TYPE chooser (screen / window / tab), Meet's pattern; the
+   browser's native confirm still follows (the web can't enumerate windows).
+   A Liquid-Glass sheet floating on the blurred backdrop the shared modal uses. */
+.screen-picker-backdrop {
+  /* the shared .media-viewer-backdrop already centers + blurs; a lighter tint
+     here since the panel is small */
+  z-index: 1200;
+}
+.screen-picker {
+  position: relative;
+  width: min(92vw, 560px);
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.12), oklch(100% 0 0 / 0.04));
+  border: 1px solid var(--border-hairline);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.20),
+    0 24px 64px oklch(0% 0 0 / 0.45);
+  animation: screen-picker-pop 0.32s var(--spring-easing);
+  overflow: hidden;
+}
+body.light-theme .screen-picker {
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.72), oklch(100% 0 0 / 0.42));
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.9),
+    0 24px 64px oklch(0% 0 0 / 0.22);
+}
+@keyframes screen-picker-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.screen-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.screen-picker-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.screen-picker-subtitle {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.screen-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.screen-surface-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border-hairline);
+  background: oklch(100% 0 0 / 0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s var(--spring-easing), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body.light-theme .screen-surface-card {
+  background: oklch(0% 0 0 / 0.03);
+}
+.screen-surface-card:hover {
+  transform: translateY(-3px);
+  background: oklch(100% 0 0 / 0.08);
+  border-color: color-mix(in oklch, var(--accent-live) 55%, transparent);
+  box-shadow: 0 10px 26px oklch(0% 0 0 / 0.28);
+}
+body.light-theme .screen-surface-card:hover {
+  background: oklch(0% 0 0 / 0.05);
+}
+.screen-surface-card:active {
+  transform: translateY(-1px) scale(0.98);
+}
+.screen-surface-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: var(--accent-live);
+  background: radial-gradient(closest-side, color-mix(in oklch, var(--accent-live) 22%, transparent), transparent);
+}
+.screen-surface-label {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.screen-surface-hint {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-picker { animation: none; }
+  .screen-surface-card:hover { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .screen-picker {
+    background: oklch(20% 0.01 260 / 0.98);
+  }
+  body.light-theme .screen-picker {
+    background: oklch(98% 0 0 / 0.99);
+  }
+}
+@media (max-width: 520px) {
+  .screen-picker-grid { grid-template-columns: 1fr; }
+  .screen-surface-card { flex-direction: row; justify-content: flex-start; gap: 14px; padding: 14px 16px; }
+  .screen-surface-icon { width: 44px; height: 44px; }
+  .screen-surface-card .screen-surface-label,
+  .screen-surface-card .screen-surface-hint { text-align: left; }
+}
+
+/* Connection Action button */
+.call-action-btn {
+  width: 52px;
+  height: 52px;
+  color: #fff;
+  border: none;
+}
+
+.call-action-btn.start-call {
+  background-color: var(--accent-live);
+  box-shadow: 0 4px 14px oklch(75% 0.18 145 / 0.35);
+}
+
+.call-action-btn.end-call {
+  background-color: var(--accent-error);
+  box-shadow: 0 4px 14px oklch(62% 0.2 25 / 0.35);
+}
+
+.call-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.call-controls-bar .divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-hairline);
+  margin: 0 4px;
+}
+
+/* ---- typed input: the pill morphs (iOS 26 pattern — one glass object, two
+   states). The wrap telescopes via max-width so open/close is a single smooth
+   stretch of the SAME pill; contents clip during the collapse. ---- */
+.live-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  /* negative margin swallows the bar's 12px flex gap while closed, so the
+     collapsed pill reads identical to the pre-feature layout */
+  margin-left: -12px;
+  transition: max-width 0.4s var(--spring-easing), opacity 0.25s ease, margin-left 0.4s var(--spring-easing);
+}
+
+.live-text-wrap.open {
+  max-width: min(380px, 46vw);
+  opacity: 1;
+  margin-left: 0;
+}
+
+.live-text-field {
+  flex-shrink: 0;
+  width: calc(min(380px, 46vw) - 76px); /* wrap minus send bead + gaps + divider */
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-speed);
+}
+
+.live-text-field:focus {
+  border-color: var(--border-active);
+}
+
+.live-text-field::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.live-text-send {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-button);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s var(--spring-easing);
+}
+
+.live-text-send:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+  transform: scale(1.08);
+}
+
+.live-text-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- push-to-talk hold: sonar waves + lit shell ----
+   Held (mouse or Space), the mic button lights green (the scene's "live" hue)
+   and pings concentric sonar rings outward. `active` (from session.listening)
+   keeps the shell warm through the post-release ASR decode, without the waves. */
+.ptt-btn {
+  position: relative;
+}
+.ptt-btn > svg {
+  position: relative;
+  z-index: 1; /* glyph rides above the ring strokes crossing the button face */
+}
+.ptt-btn.active:not(.ptt-holding) {
+  border-color: var(--accent-live);
+  color: var(--accent-live);
+}
+.ptt-btn.ptt-holding {
+  background: rgba(var(--accent-live-rgb), 0.16);
+  border-color: var(--accent-live);
+  color: var(--accent-live);
+  transform: scale(1.06);
+  box-shadow: 0 4px 18px rgba(var(--accent-live-rgb), 0.35);
+}
+.ptt-btn.ptt-holding:active {
+  transform: scale(1.02); /* hold beats the generic press-shrink */
+}
+
+.ptt-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-live);
+  opacity: 0;
+  transform: scale(1);
+  pointer-events: none;
+}
+/* each ring pings at a slightly different speed, so their phases drift and
+   the pattern never settles into a rigid repeating loop */
+.ptt-btn.ptt-holding .ptt-wave {
+  animation: ptt-sonar 1.8s var(--spring-easing) infinite;
+}
+.ptt-btn.ptt-holding .ptt-wave:nth-child(2) { animation-duration: 2.05s; animation-delay: 0.6s; }
+.ptt-btn.ptt-holding .ptt-wave:nth-child(3) { animation-duration: 2.3s; animation-delay: 1.2s; }
+
+@keyframes ptt-sonar {
+  0%   { opacity: 0.5; transform: scale(1); }
+  70%  { opacity: 0; }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* no ping — a single steady halo carries the held state */
+  .ptt-btn.ptt-holding .ptt-wave {
+    animation: none;
+    opacity: 0.35;
+    transform: scale(1.5);
+  }
+  .ptt-btn.ptt-holding .ptt-wave:nth-child(2),
+  .ptt-btn.ptt-holding .ptt-wave:nth-child(3) {
+    opacity: 0;
+  }
+}
+
+.call-control-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.call-control-btn:disabled:hover {
+  transform: none;
+  background: var(--bg-button);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-text-wrap {
+    transition: opacity 0.15s ease;
+  }
+}
+
+/* Theme Scheme Colors and Accents Mapping */
+.ai-stream-box.theme-fluid {
+  --orb-hue: 280;
+}
+.ai-stream-box.theme-cosmic {
+  --orb-hue: 30;
+}
+.ai-stream-box.theme-quantum {
+  --orb-hue: 190;
+}
+
+/* ==================== ACTIVE SPEAKER SWITCH FOCUS STATES ==================== */
+
+/* Both panes are ABSOLUTE in BOTH states and animate top/left/width/height only — no
+   relative↔absolute or auto↔px jumps — so the swap is one smooth shared morph (§3–§4). */
+
+/* State A: Model Primary (Default) — big centered orb, small top-right camera */
+.ai-stream-box[data-focus="model"] .streaming-visualizer-container {
+  position: absolute;
+  top: calc(50% - 190px);
+  left: calc(50% - 190px);
+  width: 380px;
+  height: 380px;
+  transition: all 0.5s var(--spring-easing);
+}
+.ai-stream-box[data-focus="model"] .user-pip-box {
+  position: absolute;
+  top: 24px;
+  left: calc(100% - 214px); /* top-right corner: 190 + 24 */
+  width: 190px;
+  height: 126px;
+  z-index: 4;
+  cursor: pointer;
+  transition: all 0.5s var(--spring-easing);
+}
+.ai-stream-box[data-focus="model"] .user-pip-box:hover {
+  transform: scale(1.04);
+}
+
+/* State B: User Camera Focused — camera fills; the model orb shrinks to a
+   mini glass ball centered on the lower band of the media view */
+.ai-stream-box[data-focus="user"] .user-pip-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  z-index: 1;
+  transition: all 0.5s var(--spring-easing);
+}
+.ai-stream-box[data-focus="user"] .user-pip-box .pip-label {
+  opacity: 0;
+  pointer-events: none;
+}
+.ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+  position: absolute;
+  /* LOWER-CENTER band (the retired subtitle bar's register: 160px bottom +
+     half the old one-line row + half the 88px ball) — the rolling caption
+     lives in the transcript log now, so the ball holds the middle in every
+     session state. Kept as a top: calc() (not bottom) so the focus-swap
+     morph stays a pure same-property interpolation with model-focus's top. */
+  top: calc(100% - 160px - 31px / 2 - 44px);
+  left: calc(50% - 44px);
+  width: 88px; /* larger stage for the glass ball — every layer gets real pixels */
+  height: 88px;
+  z-index: 3;
+  cursor: pointer;
+  border-radius: 50%;
+  /* The BALL is the object — no vessel chrome (hairline / black ring) around it.
+     The frosted scrim is the ball's INTERIOR ground (the flat backdrop of the
+     design study): dense in the middle so live video can't wash out the aurora,
+     then a smoothstep fade (sampled stops — a 2-stop linear fade reads as a disc
+     edge) that dies at 94%, fully under the fresnel rim. The ball silhouette is
+     ~99% of this box, so the backdrop-blur boundary at 100% hides beneath the rim
+     glow — no white/black plate ring around the sphere. Declared HERE (not :root)
+     so var(--orb-hue) resolves under the active .theme-*. */
+  --orb-vessel: oklch(15% 0.028 var(--orb-hue, 280) / 0.80);
+  background: radial-gradient(closest-side,
+    var(--orb-vessel) 0%,
+    var(--orb-vessel) 70%,
+    color-mix(in oklab, var(--orb-vessel) 93%, transparent) 74%,
+    color-mix(in oklab, var(--orb-vessel) 74%, transparent) 78%,
+    color-mix(in oklab, var(--orb-vessel) 50%, transparent) 82%,
+    color-mix(in oklab, var(--orb-vessel) 26%, transparent) 86%,
+    color-mix(in oklab, var(--orb-vessel) 7%, transparent) 90%,
+    transparent 94%);
+  backdrop-filter: blur(18px); /* frosted "regular" glass behind the clear ball */
+  -webkit-backdrop-filter: blur(18px);
+  /* Grounding: bottom-biased contact shadow (negative spread keeps it off the
+     upper rim — a symmetric halo read as a dark ring around the ball). */
+  box-shadow: 0 12px 22px -6px oklch(0% 0 0 / 0.30);
+  transition: all 0.5s var(--spring-easing);
+}
+body.light-theme .ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+  --orb-vessel: oklch(97% 0.012 var(--orb-hue, 280) / 0.85);
+  box-shadow: 0 12px 22px -6px oklch(15% 0.02 var(--orb-hue, 280) / 0.28);
+}
+/* On the light page the violet halo reads as a colored ring around the mini ball —
+   keep the room-bloom for the big focused orb, dim it under the glass sphere. */
+body.light-theme .ai-stream-box[data-focus="user"] .avatar-orb-glow {
+  opacity: 0.10;
+}
+.ai-stream-box[data-focus="user"] .streaming-visualizer-container:hover {
+  transform: scale(1.08);
+}
+/* (The caption bar's position/drift rules lived here — removed with the bar:
+   the mini ball now holds the lower-center spot in every session state, and
+   the rolling caption renders in the transcript log.) */
+
+/* Reduced-motion: collapse the focus-swap morph (orb / PIP) to an instant
+   change — the glass shell overlay needs no rule here: its opacity is
+   driven by sphereT, which already jumps instantly under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .streaming-visualizer-container,
+  .user-pip-box {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== THE SESSION PANEL (RIGHT SIDEBAR OVERHAUL) ==================== */
+.session-panel {
+  width: 340px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  transition: all 0.4s var(--spring-easing);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 24px; /* Add Inset to prevent edge touches */
+}
+
+.session-panel .panel-header {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.session-panel .panel-header h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.session-panel .panel-header p {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.session-panel .panel-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.session-panel .panel-content::-webkit-scrollbar {
+  width: 0px;
+}
+
+/* Rounded Inset Groups (Concentric Corner geometry step-down) */
+.panel-group-card {
+  background: var(--bg-button);
+  border-radius: var(--radius-inner); /* 16px radius */
+  border: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  padding: 4px 14px;
+  gap: 0; /* Gaps managed by hairlines */
+}
+
+/* System-prompt group: the group CARD is the container — the textarea itself
+   is naked (no inner well/border). Deco: a slim theme-accent quote bar hugs
+   the card's left edge and brightens on focus; while a session is live the
+   card quietly dims (the prompt is KV-prefilled — edits apply next call). */
+.panel-group-card.prompt-card {
+  position: relative;
+  /* slim right padding: the field's scrollbar hugs the card edge and the
+     text's right edge gains the reclaimed width */
+  padding: 12px 6px 12px 18px;
+  overflow: hidden;
+  flex-shrink: 0; /* scroll-column child: scroll, never crush the field */
+  transition: opacity var(--transition-speed);
+}
+
+.panel-group-card.prompt-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #8a4be6, #4ade80, #38bdf8);
+  opacity: 0.35;
+  transition: opacity var(--transition-speed);
+}
+
+.panel-group-card.prompt-card:focus-within::before {
+  opacity: 0.85;
+}
+
+.panel-group-card.prompt-card.locked {
+  opacity: 0.55;
+}
+
+/* generic locked group (the streaming-params card while a session is live —
+   its values are baked at creation, so edits apply on the next call) */
+.panel-group-card.locked {
+  opacity: 0.55;
+  transition: opacity var(--transition-speed);
+}
+
+/* Streaming model params — a 2×2 grid of compact number fields split by
+   hairlines into quadrants; each cell is a small label over a naked field. */
+.param-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px 0;
+}
+.param-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 6px;
+  text-align: left;
+}
+.param-cell:nth-child(odd) {
+  border-right: 1px solid var(--border-hairline);
+  padding-right: 14px;
+}
+.param-cell:nth-child(even) {
+  padding-left: 14px;
+}
+.param-cell:nth-child(1),
+.param-cell:nth-child(2) {
+  border-bottom: 1px solid var(--border-hairline);
+}
+.param-cell label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.session-panel .liquid-number {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: calc(var(--radius-inner) - 6px);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  /* house rule: strip the native spinner arrows */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.session-panel .liquid-number:hover:not(:disabled),
+.session-panel .liquid-number:focus {
+  border-color: var(--border-active);
+}
+.session-panel .liquid-number:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.session-panel .liquid-number::-webkit-inner-spin-button,
+.session-panel .liquid-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.liquid-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0; /* a flex-column child textarea otherwise shrinks to 0 */
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+
+.liquid-textarea.prompt-field {
+  padding: 0 8px 0 0; /* keep a breath between text and the scrollbar */
+  background: transparent;
+  border: none;
+  /* scrollbar: invisible until the field is hovered (Firefox arm) */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.liquid-textarea.prompt-field:hover {
+  scrollbar-color: light-dark(oklch(65% 0.01 240 / 0.5), oklch(60% 0.012 240 / 0.4)) transparent;
+}
+
+/* WebKit arm of the same hover-reveal scrollbar */
+.liquid-textarea.prompt-field::-webkit-scrollbar {
+  width: 6px;
+}
+
+.liquid-textarea.prompt-field::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.liquid-textarea.prompt-field::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.liquid-textarea.prompt-field:hover::-webkit-scrollbar-thumb {
+  background: light-dark(oklch(65% 0.01 240 / 0.5), oklch(60% 0.012 240 / 0.4));
+}
+
+.liquid-textarea[readonly] {
+  cursor: default;
+}
+
+.panel-group-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: left;
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+/* Settings inline row layout (Label left, Selector right) */
+.settings-row-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.settings-row-inline:not(:last-child) {
+  border-bottom: 1px solid var(--border-hairline); /* Divider hairlines */
+}
+
+.settings-row-inline label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.session-panel .liquid-select {
+  width: auto;
+  max-width: 160px;
+  padding: 6px 10px;
+  border-radius: calc(var(--radius-inner) - 6px); /* Concentric step-down 10px radius */
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--font-body); /* Fixed stray Inter literal */
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  letter-spacing: -0.01em;
+}
+.session-panel .liquid-select:hover {
+  border-color: var(--border-active);
+}
+
+.session-panel .settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding: 12px 4px;
+}
+.session-panel .settings-group:not(:last-child) {
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.session-panel .settings-group label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.session-panel .slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.session-panel .liquid-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-canvas);
+  outline: none;
+  cursor: pointer;
+}
+.session-panel .liquid-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  box-shadow: 0 0 8px var(--accent-glow);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.session-panel .liquid-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.session-panel .slider-display {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ---- 更多设置 disclosure (bottom of the panel): ASR/TTS/visual config folds
+   away so prompt + transcript own the column. Grid 0fr→1fr animates to the
+   content's natural height with no magic max-height. ---- */
+/* minimal: a quiet text+caret row at the panel's inner left edge (lines up
+   with the group titles), no card chrome */
+.more-settings-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color var(--transition-speed);
+}
+
+.more-settings-toggle:hover {
+  color: var(--text-primary);
+}
+
+.more-caret {
+  transition: transform 0.3s var(--spring-easing);
+}
+
+.more-caret.open {
+  transform: rotate(180deg);
+}
+
+.more-settings {
+  /* shrinkable flex child: when the folded groups don't fit, THIS region
+     shrinks and scrolls internally — the prompt + transcript above never move */
+  flex: 0 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s var(--spring-easing);
+}
+
+.more-settings.open {
+  grid-template-rows: 1fr;
+}
+
+.more-settings-inner {
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* matches .panel-content's group rhythm */
+  /* scrolls, but shows NO scrollbar — same as the log / panel column */
+  scrollbar-width: none;
+}
+
+.more-settings-inner::-webkit-scrollbar {
+  width: 0px;
+}
+
+.more-settings-inner > * {
+  flex-shrink: 0; /* groups scroll, never crush (the panel-column lesson) */
+}
+
+/* the first folded group title hugs the toggle a bit tighter */
+.more-settings-inner > .panel-group-title:first-child {
+  margin-top: 2px;
+}
+
+.session-panel .log-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: left;
+  padding-left: 4px;
+}
+/* title + live video-time tag share one row */
+.session-panel .log-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  padding-right: 4px;
+}
+
+.session-panel .log-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Context-command buttons (/compact summarize, /clear restart) — small
+   glassy round action beads riding the transcript title row */
+.session-panel .context-cmd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-button);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.session-panel .context-cmd-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.session-panel .context-cmd-btn:not(:disabled):hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+.session-panel .context-cmd-btn.danger:not(:disabled):hover {
+  color: var(--danger, oklch(65% 0.2 25));
+  border-color: var(--danger, oklch(65% 0.2 25));
+}
+.session-panel .context-cmd-btn.running {
+  color: var(--accent-live);
+}
+.session-panel .context-cmd-btn.running svg {
+  animation: msg-action-spin 0.9s linear infinite;
+}
+
+/* Reduced transparency support block */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --bg-media-scrim: oklch(0% 0 0 / 0.78);
+  }
+  .session-panel.glass-card {
+    background: var(--bg-panel-solid);
+    backdrop-filter: none;
+  }
+  .sidebar-popup-modal {
+    background: var(--bg-overlay-solid);
+    backdrop-filter: none;
+  }
+  .ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* no blur to lean on → the vessel scrim itself goes near-solid */
+    --orb-vessel: oklch(18% 0.03 var(--orb-hue, 280) / 0.92);
+  }
+  body.light-theme .ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+    --orb-vessel: oklch(96% 0.015 var(--orb-hue, 280) / 0.95);
+  }
+}
+
+/* Scrollable Conversation Log list */
+.session-conversation-log {
+  flex: 1;
+  /* 更多设置 expanding below squeezes the log — down to this floor, past which
+     the panel's own hidden-scrollbar column takes over */
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: none;
+  
+  /* Scroll vertical gradient fade mask */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 20px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 20px), transparent 100%);
+}
+.session-conversation-log::-webkit-scrollbar {
+  width: 0px;
+}
+
+.log-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: var(--radius-inner);
+  background: oklch(100% 0 0 / 0.02);
+  border: 1px solid var(--border-hairline);
+  transition: border-color 0.2s;
+}
+.log-entry.user {
+  border-left: 3px solid var(--accent-glow);
+}
+.log-entry.ai {
+  border-left: 3px solid var(--accent-live);
+}
+.log-entry-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+.log-entry-speaker {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.log-entry.user .log-entry-speaker {
+  color: var(--accent-glow);
+}
+.log-entry.ai .log-entry-speaker {
+  color: var(--accent-live);
+}
+.log-entry-time {
+  color: var(--text-muted);
+}
+
+/* Media-time tag — a small Liquid-Glass pill showing WHERE IN THE VIDEO a turn
+   landed (media clock), distinct from the wall-clock. Translucent frosted
+   surface, specular top edge, hairline rim; a play-triangle bead + tabular
+   digits. Honors reduced transparency below. */
+.media-time-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px 1px 6px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, var(--text-primary));
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.10), oklch(100% 0 0 / 0.03));
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  border: 1px solid var(--border-hairline);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.16),
+    0 1px 3px oklch(0% 0 0 / 0.18);
+}
+body.light-theme .media-time-tag {
+  background: linear-gradient(160deg, oklch(100% 0 0 / 0.6), oklch(100% 0 0 / 0.28));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.8), 0 1px 2px oklch(0% 0 0 / 0.1);
+}
+.media-time-glyph {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 3.5px 0 3.5px 5.5px;      /* a small play triangle ▶ */
+  border-color: transparent transparent transparent var(--accent-live);
+  filter: drop-shadow(0 0 2px color-mix(in oklch, var(--accent-live) 45%, transparent));
+}
+@media (prefers-reduced-transparency: reduce) {
+  .media-time-tag {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: oklch(100% 0 0 / 0.06);
+  }
+}
+
+/* Connected but no question yet — a gentle "ask now" prompt with a breathing
+   glass orb, instead of the pre-connect "awaiting" line. */
+.live-log-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 0 20px;
+  text-align: center;
+}
+.live-log-prompt-orb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, oklch(100% 0 0 / 0.9) 0%, oklch(100% 0 0 / 0) 45%),
+    radial-gradient(circle at 60% 65%, var(--accent-live) 0%, color-mix(in oklch, var(--accent-live) 45%, transparent) 100%);
+  box-shadow: 0 0 10px color-mix(in oklch, var(--accent-live) 55%, transparent);
+  animation: live-prompt-breathe 1.8s ease-in-out infinite;
+}
+.live-log-prompt-text {
+  font-family: var(--font-display, var(--font-body));
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+.live-log-prompt-hint {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.live-log-waiting {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px 0;
+  font-family: var(--font-body);
+}
+@keyframes live-prompt-breathe {
+  0%, 100% { transform: scale(0.9);  opacity: 0.7; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-log-prompt-orb { animation: none; }
+}
+.log-entry-text {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+/* Cap-carved AI bubbles — the subtitle's 3-line hardcap force-closed this
+   chunk (machine split, not model punctuation). Marked with a quiet
+   Liquid-Glass accent per core_concepts.md §Apple Liquid Glass: a translucent
+   layer that picks up the panel behind it (light blur + saturate — small
+   surface, cheap) and a specular top edge + hairline rim for depth instead of
+   louder color. Legibility first: honors reduced transparency below. */
+.log-entry.ai.capped {
+  background: linear-gradient(
+    160deg,
+    oklch(100% 0 0 / 0.07),
+    oklch(100% 0 0 / 0.02) 45%,
+    oklch(75% 0.18 145 / 0.05)
+  );
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.14),
+    inset 0 0 0 1px oklch(100% 0 0 / 0.04);
+}
+body.light-theme .log-entry.ai.capped {
+  background: linear-gradient(
+    160deg,
+    oklch(100% 0 0 / 0.55),
+    oklch(100% 0 0 / 0.22) 45%,
+    oklch(62% 0.18 145 / 0.07)
+  );
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.75),
+    inset 0 0 0 1px oklch(100% 0 0 / 0.3);
+}
+/* Apple's own 2026 correction: reduced transparency → opaque, no blur */
+@media (prefers-reduced-transparency: reduce) {
+  .log-entry.ai.capped {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: oklch(100% 0 0 / 0.05);
+  }
+}
+/* Follow-up slice of a split sentence (grouped-message pattern: only the
+   first bubble of a run carries the sender label). The accent spine fades to
+   a shallow tint — same voice, continued — and the label slot holds a single
+   liquid "water bead": accent-green droplet with a specular pinhead. */
+.log-entry.ai.cont {
+  border-left-color: color-mix(in oklch, var(--accent-live) 32%, transparent);
+}
+.log-entry-cont-glyph {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background:
+    radial-gradient(circle at 32% 28%, oklch(100% 0 0 / 0.95) 0%, oklch(100% 0 0 / 0) 42%),
+    radial-gradient(circle at 55% 60%, var(--accent-live) 0%, color-mix(in oklch, var(--accent-live) 55%, transparent) 100%);
+  box-shadow:
+    0 1px 3px color-mix(in oklch, var(--accent-live) 40%, transparent),
+    inset 0 -1px 1px oklch(100% 0 0 / 0.3);
+}
+
+/* rolling ASR hypothesis — provisional until input.transcription.done */
+.log-entry.asr-pending {
+  border-style: dashed;
+  animation: asr-pending-breathe 1.4s ease-in-out infinite;
+}
+.log-entry.asr-pending .log-entry-text {
+  color: var(--text-muted);
+}
+/* samp UI: the model's current sentence revealing at the log tail (the
+   retired subtitle bar's rolling view). Dressed per the Apple Intelligence
+   process-indicator recipe: an ANIMATED glow marks actively-generating
+   content, and the settled bubble that replaces it goes static. Every stroke
+   stays SOLID — the accent spine reads concrete; illumination does the
+   "in progress" talking — while the surface sits shallower than settled
+   bubbles, the card breathes a slow luminance pulse (never a blink), and a
+   soft specular band sweeps the ink like the writing-tools shimmer. */
+.log-entry.caption-pending {
+  --pending-accent: var(--accent-live);
+  background: oklch(100% 0 0 / 0.01); /* shallower than the settled 0.02 */
+  /* illumination: a soft halo bleeding inward off the solid accent spine */
+  box-shadow: inset 6px 0 12px -8px color-mix(in oklch, var(--pending-accent) 60%, transparent);
+  animation: caption-pending-breathe 2.4s ease-in-out infinite;
+}
+.log-entry.user.caption-pending {
+  --pending-accent: var(--accent-glow);
+}
+.log-entry.caption-pending .log-entry-text {
+  /* specular highlight sweeping through muted ink, reading direction */
+  color: transparent;
+  background: linear-gradient(100deg,
+      var(--text-muted) 42%,
+      var(--text-primary) 50%,
+      var(--text-muted) 58%)
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: caption-pending-shimmer 2.8s linear infinite;
+}
+@keyframes caption-pending-breathe {
+  0%, 100% { opacity: 0.95; }
+  50%      { opacity: 0.72; }
+}
+@keyframes caption-pending-shimmer {
+  /* highlight enters off-left, exits off-right — loop restart is invisible */
+  from { background-position: 100% 0; }
+  to   { background-position: 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .log-entry.caption-pending {
+    animation: none;
+    opacity: 0.85; /* a steady quieter card carries the provisional state */
+  }
+  .log-entry.caption-pending .log-entry-text {
+    animation: none;
+    background: none;
+    color: var(--text-muted);
+  }
+}
+/* pre-connect queued query: parked; the batch merges into one request at
+   connect. The accent rail reads as round DOTS (border-style: dotted → each
+   dot's diameter tracks its border width: 3px on the purple left rail, hairline
+   on the other sides), not short dashes. */
+.log-entry.queued {
+  border-style: dotted;
+}
+.log-entry.queued .log-entry-text {
+  color: var(--text-muted);
+}
+/* dedicated source-change line: a centered glass chip, no sender label — an
+   EVENT between utterances (camera↔screen↔file↔image↔off switches) */
+.log-entry.system {
+  align-items: center;
+  padding: 2px 0;
+  background: none;
+  border: none;
+}
+.log-entry-system-chip {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  background: light-dark(oklch(93% 0.05 296 / 0.4), oklch(27% 0.07 296 / 0.35));
+  color: light-dark(oklch(30% 0.17 296), oklch(72% 0.14 296));
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 88%;
+  text-align: center;
+}
+/* memory recall: a centered blue tag between utterances — an EVENT, not a
+   turn (the blue hue stays clear of the AI green / user purple accents and
+   matches the model orb). Collapsed by default; a click expands the recalled
+   rows in a block beneath (bubbles after it reflow naturally), a second click
+   folds it back. */
+.log-entry.memory {
+  align-items: center;
+  padding: 2px 0;
+  background: none;
+  border: none;
+}
+/* Day theme: solid-leaning chip surfaces. The session panel is translucent
+   over the (usually dark) video stage, so the default 0.4-alpha tint washes
+   out; these pairs keep the 11px labels past WCAG AAA (7:1) on the composited
+   background. (color-scheme: light on body.light-theme makes light-dark()
+   resolve correctly — these overrides exist for the alpha bump.) */
+body.light-theme .log-entry-system-chip {
+  background: oklch(93% 0.05 296 / 0.9);
+  color: oklch(32% 0.15 296);
+}
+body.light-theme .memory-recall-tag {
+  background: oklch(93% 0.05 255 / 0.9);
+  color: oklch(34% 0.14 255);
+}
+body.light-theme .memory-recall-tag:hover {
+  background: oklch(90% 0.07 255 / 0.95);
+}
+body.light-theme .memory-recall-card {
+  background: oklch(95% 0.04 255 / 0.85);
+}
+.memory-recall-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  background: light-dark(oklch(93% 0.05 255 / 0.4), oklch(30% 0.08 255 / 0.35));
+  color: light-dark(oklch(36% 0.15 255), oklch(76% 0.12 255));
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 88%;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.memory-recall-tag:hover {
+  background: light-dark(oklch(90% 0.07 255 / 0.55), oklch(35% 0.1 255 / 0.45));
+}
+.memory-recall-tag:active {
+  transform: scale(0.97);
+}
+.memory-recall-glyph {
+  /* CSS triangle: points DOWN when collapsed, flips UP when expanded; the
+     inline-flex tag keeps it vertically centered with the label text */
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid currentColor;
+  transition: transform 0.2s ease;
+}
+.log-entry.memory.open .memory-recall-glyph {
+  transform: rotate(180deg);
+}
+.memory-recall-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 92%;
+  margin-top: 6px; /* a bit of distance under the tag */
+  padding: 8px 12px;
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--border-hairline);
+  background: light-dark(oklch(95% 0.04 255 / 0.45), oklch(28% 0.05 255 / 0.3));
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  animation: fade-in 0.3s ease-out;
+}
+.memory-recall-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.memory-recall-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.memory-recall-ts {
+  flex: none;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: light-dark(oklch(46% 0.1 255), oklch(72% 0.09 255));
+}
+@media (prefers-reduced-motion: reduce) {
+  .memory-recall-card {
+    animation: none;
+  }
+  .memory-recall-tag,
+  .memory-recall-glyph {
+    transition: none;
+  }
+}
+@keyframes asr-pending-breathe {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 0.55; }
+}
+.terminal-log {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-inner);
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.65;
+  height: 150px;
+  overflow-y: auto;
+  color: var(--text-muted);
+}
+
+.log-line span {
+  color: var(--accent-glow);
+  font-weight: 500;
+}
+
+.log-line.text-green {
+  color: var(--text-primary);
+  border-left: 2px solid var(--accent-live);
+  padding-left: 6px;
+  margin-left: -6px;
+}
+
+.log-line.text-red {
+  color: var(--accent-error);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-hairline);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* (The old @media 992px / 576px "responsive adjustments" lived here. They were
+   mostly dead — .sidebar-drawer matched no element, the session-panel edge
+   rules had no `position` to act on, and the 576px orb rule lost every
+   specificity fight — and their 992px cutoff contradicted the design ladder.
+   The working ideas (top-bar rail, caption insets) are re-homed in the
+   MOBILE / RESPONSIVE LADDER section at the end of this file, which follows
+   this ladder: ≥1280 desktop / ≤1279 tighter panel / ≤1099
+   slide-over / ≤767 phone.) */
+
+/* ==================== COLLAPSIBLE SIDEBAR SEARCH & POPUP MODALS ==================== */
+.icon-wrapper-dynamic {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-dynamic-clock,
+.icon-dynamic-search {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.4s var(--spring-easing), opacity 0.3s ease;
+}
+
+.icon-dynamic-clock {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.icon-wrapper-dynamic.history-search-active .icon-dynamic-clock {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+.icon-dynamic-search {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+
+.icon-wrapper-dynamic.history-search-active .icon-dynamic-search {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Expanded rail (chat page only — live never expands): hovering History previews the
+   search glyph with the same rotate-swap read as the mode/theme toggles (.icon-swap).
+   The collapsed rail keeps its static clock (its click opens a pop-over, not search). */
+.sidebar-panel.expanded .nav-item-btn:hover .icon-wrapper-dynamic .icon-dynamic-clock {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+.sidebar-panel.expanded .nav-item-btn:hover .icon-wrapper-dynamic .icon-dynamic-search {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+/* Click-lock (same contract as .icon-swap): after dismissing the search bar the pointer
+   is still over the reborn History tab — hold the clock glyph, committed instantly, and
+   only a hover-out re-arms the swap. Placed after :hover so it wins at equal specificity. */
+.sidebar-panel.expanded .nav-item-btn.swap-locked .icon-wrapper-dynamic .icon-dynamic-clock {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.sidebar-panel.expanded .nav-item-btn.swap-locked .icon-wrapper-dynamic .icon-dynamic-search {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+.sidebar-panel.expanded .nav-item-btn.swap-locked .icon-wrapper-dynamic .icon-dynamic-clock,
+.sidebar-panel.expanded .nav-item-btn.swap-locked .icon-wrapper-dynamic .icon-dynamic-search {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-dynamic-clock,
+  .icon-dynamic-search { transition: opacity 0.15s ease; transform: none; }
+}
+
+/* Icon that shows the CURRENT state at rest and the TARGET state on hover —
+   used by the mode-switch and theme toggle so both read the same way. */
+.icon-swap {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-swap > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.25s var(--spring-easing), transform 0.3s var(--spring-easing);
+}
+.icon-swap .swap-target {
+  opacity: 0;
+  transform: scale(0.7) rotate(-30deg);
+}
+.nav-item-btn:hover .icon-swap .swap-current {
+  opacity: 0;
+  transform: scale(0.7) rotate(30deg);
+}
+.nav-item-btn:hover .icon-swap .swap-target {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+/* After a click, stay on the just-switched (current) glyph even while still hovered;
+   only a hover-then-leave without clicking reverts. Placed after the :hover rules so
+   it wins at equal specificity. */
+.nav-item-btn.swap-locked .icon-swap .swap-current {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+.nav-item-btn.swap-locked .icon-swap .swap-target {
+  opacity: 0;
+  transform: scale(0.7) rotate(-30deg);
+}
+/* Commit the click INSTANTLY (no rotate/flip): the glyph you were hovering (the target)
+   just becomes the new current in place. Hover-in and hover-out still animate normally. */
+.nav-item-btn.swap-locked .icon-swap > span {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-swap > span { transition: opacity 0.15s ease; }
+  .icon-swap .swap-target,
+  .nav-item-btn:hover .icon-swap .swap-current { transform: none; }
+}
+
+.nav-item-search-bar {
+  width: 100%;
+  height: 44px;
+  flex-shrink: 0; /* rigid like the tabs it replaces */
+  border-radius: var(--radius-inner);
+  border: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  /* left padding matches .nav-item-btn (9px + same 1px border) so the
+     magnifier sits exactly on the rail's icon column */
+  padding: 0 12px 0 9px;
+  position: relative;
+  box-sizing: border-box;
+  background: var(--bg-button);
+  transition: all 0.3s var(--spring-easing);
+}
+
+.sidebar-search-input {
+  flex: 1;
+  min-width: 0; /* let the input shrink so the search bar fits the rail instead of pushing it */
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 8px 4px;
+  margin-left: 12px;
+  letter-spacing: -0.015em;
+}
+
+.sidebar-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn-search-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-search-close:hover {
+  background: var(--bg-button-hover);
+  color: var(--text-primary);
+}
+
+/* Custom Scrollbar Bottom Line Track (HistoryScrollRail): drags run on Pointer
+   Events with setPointerCapture — touch-action: none hands the whole gesture to
+   the rail (no scroll/zoom stealing on touch), and the pseudo-element hit zones
+   below grow the 2px hairline into a comfortable target without changing it
+   visually. */
+.search-scrollbar-track {
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--border-hairline);
+  cursor: ew-resize;
+  z-index: 5;
+  touch-action: none;
+}
+
+/* Generous press target around the hairline rail */
+.search-scrollbar-track::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+/* Keyboard focus (role="scrollbar", arrow keys step one item) */
+.search-scrollbar-track:focus-visible {
+  outline: 1.5px solid var(--accent-glow);
+  outline-offset: 5px;
+  border-radius: 1px;
+}
+
+.search-scrollbar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--accent-glow);
+  width: 0;
+  pointer-events: none;
+}
+
+/* The dot IS hit-testable (above the track's ::after zone): a press that lands
+   on it drags from the grabbed spot instead of jumping — native scrollbar feel.
+   The thumb box itself is a FIXED 8px anchor; the visible dot lives on ::before
+   so the hover/focus growth scales only the visual — scaling the thumb element
+   used to scale the index tooltip child with it (1.4× on hover vs 1× via
+   keyboard, the "indexer changes size" bug). */
+.search-scrollbar-thumb {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* The dot visual (macOS-scrollbar-style grow on hover, tooltip unaffected) */
+.search-scrollbar-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  box-shadow: 0 0 6px var(--accent-glow);
+  transition: transform 0.15s ease;
+}
+
+/* The dot's own padded hit circle */
+.search-scrollbar-thumb::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+}
+
+.search-scrollbar-track:hover .search-scrollbar-thumb::before,
+.search-scrollbar-track:focus-visible .search-scrollbar-thumb::before {
+  transform: scale(1.4);
+}
+
+.scroll-index-tooltip {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel-solid);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Scrollable Container settings */
+.sidebar-dropdown-list-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: none;
+}
+
+.sidebar-dropdown-list-scroll::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Popup Modal styling */
+.sidebar-popup-modal {
+  position: fixed;
+  width: 250px;
+  z-index: 100;
+  left: 80px; /* flush against collapsed sidebar */
+  background: var(--bg-panel);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-inner);
+  box-shadow: 
+    10px 10px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  box-sizing: border-box;
+  transform-origin: left center;
+  animation: modal-spring-in 0.22s var(--spring-easing);
+}
+
+/* Streaming Mode Density & Contrast Overrides */
+body.mode-streaming .sidebar-popup-modal {
+  background: var(--bg-overlay-solid);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-active);
+  box-shadow: 
+    16px 16px 50px oklch(0% 0 0 / 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@keyframes modal-spring-in {
+  from { opacity: 0; transform: scale(0.85) translateX(-8px); }
+  to { opacity: 1; transform: scale(1) translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-popup-modal {
+    animation: modal-fade-in 0.15s ease-out !important;
+  }
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-header-row h3 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: var(--bg-button);
+  color: var(--text-primary);
+}
+
+.modal-search-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-inner);
+  padding: 6px 10px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.modal-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 4px;
+  margin-left: 10px;
+  letter-spacing: -0.015em;
+}
+
+.modal-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.modal-scroll-content {
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: none;
+}
+
+.modal-scroll-content::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* ==================== DESKTOP FIXED MIDDLE DIALOGUE LAYOUT ==================== */
+/* min-width: 768px (not 769) so a 768px-wide window doesn't fall into the crack
+   between this block and the phone ladder's max-width: 767.98px. */
+@media (min-width: 768px) {
+  .sidebar-panel:not(.diagnostics-panel) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+  
+  .workspace-container {
+    padding-left: 80px; /* Constant offset matching collapsed rail width */
+    box-sizing: border-box;
+  }
+}
+
+.diagnostics-panel {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+/* ============================================================================
+   MOBILE / RESPONSIVE LADDER  (plan 2026-07-03)
+   ≥1280 desktop (untouched) → ≤1279.98 tighter panel → ≤1099.98 slide-over
+   panel → ≤767.98 phone (top bar; FaceTime live stage; bottom sheet).
+   EVERYTHING here is gated behind media/capability queries — the desktop
+   rendering must stay pixel-identical. Appended last so it wins ties.
+   ========================================================================= */
+
+:root {
+  /* Safe-area (notch / home indicator); 0 on desktop. Requires the
+     viewport-fit=cover meta in index.html. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  /* Phone chrome metrics */
+  --mobile-topbar-h: 60px;
+  --phone-controls-h: 68px; /* call-controls pill incl. breathing room */
+  --phone-caption-bottom: calc(var(--safe-bottom) + var(--phone-controls-h) + 40px);
+  --sheet-radius: var(--radius-outer);
+}
+
+/* ---- Panel close button (JSX always renders it; only the slide-over /
+   sheet presentations show it — desktop keeps the fixed column, no chrome) */
+.panel-close-btn {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-button);
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+.panel-close-btn:active {
+  color: var(--text-primary);
+}
+
+/* ---- ≤1279.98: tighter session panel (live_page.md §2.2 "1100-1280") ---- */
+@media (max-width: 1279.98px) {
+  .session-panel {
+    width: 320px;
+  }
+}
+
+/* ---- ≤1099.98: session panel becomes a right SLIDE-OVER over the stage ----
+   Driven by the pre-existing showSessionPanel state (.open class + the
+   .panel-toggle-btn in the status pill — both were wired in JSX but dead in
+   CSS until now). Floating over media: never glass-on-glass → near-opaque
+   overlay material + modest blur; glass still casts a shadow. */
+@media (max-width: 1099.98px) {
+  .main-video-container {
+    min-width: 0; /* kill the 560px golden-split floor on narrow stages */
+  }
+  .session-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    height: auto;
+    width: min(340px, calc(100vw - 32px));
+    z-index: 30;
+    transform: translateX(calc(100% + 24px));
+    background: var(--bg-overlay-solid);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-outer);
+    box-shadow: 0 24px 60px oklch(0% 0 0 / 0.35);
+  }
+  .session-panel.open {
+    transform: translateX(0);
+  }
+  .panel-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .session-panel .panel-header {
+    position: relative;
+    padding-right: 40px; /* clear the close button */
+  }
+  .panel-close-btn {
+    display: flex;
+  }
+}
+
+/* ---- Touch: neutralize transform-carrying hover affordances --------------
+   On touch, :hover is sticky after a tap — scale/lift/glyph-preview states
+   freeze mid-air. Rather than relocating ~10 scattered rules (churn risk),
+   this additive block resets them wherever no hover capability exists;
+   (hover: none) can never match a mouse-driven desktop, so ≥1280 rendering
+   is untouched. Color-only hovers stay — a tinted sticky state is harmless. */
+@media (hover: none) {
+  .nav-item-btn:hover,
+  .send-message-btn:hover,
+  .gen-ui-card:hover,
+  .player-play-btn:hover,
+  .call-control-btn:hover,
+  .call-action-btn:hover,
+  .ai-stream-box[data-focus="model"] .user-pip-box:hover,
+  .ai-stream-box[data-focus="user"] .streaming-visualizer-container:hover {
+    transform: none;
+  }
+  /* Icon-swap / dynamic-icon hover PREVIEWS (mode, theme, history glyphs):
+     a sticky preview shows the WRONG glyph after tapping — pin to the
+     at-rest state (base values restated). */
+  .nav-item-btn:hover .icon-swap .swap-current {
+    opacity: 1;
+    transform: none;
+  }
+  .nav-item-btn:hover .icon-swap .swap-target {
+    opacity: 0;
+    transform: scale(0.7) rotate(-30deg);
+  }
+  .sidebar-panel.expanded .nav-item-btn:hover .icon-wrapper-dynamic .icon-dynamic-clock {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  .sidebar-panel.expanded .nav-item-btn:hover .icon-wrapper-dynamic .icon-dynamic-search {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+  }
+}
+
+/* ---- Touch: comfortable targets (Apple HIG 44pt) + iOS focus-zoom guard -- */
+@media (pointer: coarse) {
+  .input-action-btn,
+  .send-message-btn,
+  .sidebar-toggle-trigger {
+    width: 44px;
+    height: 44px;
+  }
+  /* Small chrome buttons keep their visual size; an invisible hit ring
+     brings the target to ~44px (same trick as the history-rail dot).
+     (.panel-close-btn is NOT in this list: it is position: absolute in the
+     header — the ::after ring works on any positioned element, and forcing
+     relative here would drop it back into static flow.) */
+  .panel-toggle-btn,
+  .modal-close-btn,
+  .btn-search-close {
+    position: relative;
+  }
+  .panel-toggle-btn::after,
+  .panel-close-btn::after,
+  .modal-close-btn::after,
+  .btn-search-close::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+  }
+  /* History rail: widen the dot's hit circle further on touch */
+  .search-scrollbar-thumb::after {
+    inset: -14px;
+  }
+  /* iOS Safari zooms the page when a focused control's font-size < 16px */
+  .chat-input-bar input,
+  .sidebar-search-input,
+  .modal-search-input,
+  .liquid-select,
+  .liquid-textarea,
+  .live-text-field {
+    font-size: 16px;
+  }
+  /* phone: the expanded pill spans most of the stage width */
+  .live-text-wrap.open {
+    max-width: calc(100vw - 230px);
+  }
+  .live-text-field {
+    width: calc(100vw - 306px);
+    min-width: 110px;
+  }
+  /* Kill the 300ms-legacy double-tap zoom delay on controls */
+  button,
+  input,
+  select,
+  .sidebar-dropdown-item,
+  .user-pip-box,
+  .streaming-visualizer-container {
+    touch-action: manipulation;
+  }
+}
+
+/* ---- ≤767.98: PHONE — chat workspace + shared chrome ---------------------
+   The rail becomes a 60px glass TOP BAR (re-homed from the old 992px block,
+   now with safe-area padding); the workspace fills the remaining dynamic
+   viewport so the chat composer rides the keyboard (dvh + the
+   interactive-widget viewport meta). */
+@media (max-width: 767.98px) {
+  .app-container {
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh; /* dynamic: tracks URL-bar collapse and (Android) keyboard */
+  }
+  .sidebar-panel {
+    width: 100% !important;
+    height: calc(var(--mobile-topbar-h) + var(--safe-top)) !important;
+    flex-direction: row !important;
+    padding: var(--safe-top) calc(12px + var(--safe-right)) 0 calc(12px + var(--safe-left)) !important;
+    align-items: center !important;
+    justify-content: space-between;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  /* On the top bar the glass is always on (no collapse), as a bottom edge */
+  .sidebar-panel::before {
+    opacity: 1;
+    transform: none;
+    border-radius: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .sidebar-panel:not(.expanded) .card-glass-specular {
+    opacity: 1;
+  }
+  .sidebar-panel .sidebar-toggle-trigger,
+  .sidebar-panel .sidebar-spacer-10,
+  .sidebar-panel .sidebar-spacer-5 {
+    display: none;
+  }
+  .sidebar-panel .nav-group {
+    flex-direction: row !important;
+    width: auto !important;
+    gap: 12px;
+  }
+  .nav-item-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .nav-item-btn span {
+    display: none !important;
+  }
+  /* Sidebar dropdowns/search live inside the top bar row — hide the expanded
+     rail affordances that assume a vertical column */
+  .sidebar-dropdown-list {
+    display: none;
+  }
+  .workspace-container {
+    height: auto;
+    flex: 1;
+    padding-left: 0; /* cancels the ≥768 fixed-rail offset */
+  }
+  .sidebar-panel:not(.diagnostics-panel) {
+    position: relative; /* cancels the ≥768 absolute rail */
+  }
+
+  /* Chat pane: phone insets + safe-bottom composer */
+  .main-chat-container {
+    padding: 0 16px;
+  }
+  .chat-messages-container {
+    padding: 16px 4px 90px 4px;
+    overscroll-behavior: contain;
+  }
+  .chat-input-wrapper {
+    padding: 8px 0 calc(10px + var(--safe-bottom)) 0;
+  }
+  .logo span.badge {
+    display: none;
+  }
+
+  /* Collapsed-rail popup modals → full-width cards under the top bar.
+     (!important: the JSX positions them with an inline `top` measured from
+     the icon's rect — meaningless under a horizontal bar.) */
+  .sidebar-popup-modal {
+    top: calc(var(--safe-top) + var(--mobile-topbar-h) + 8px) !important;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: min(70dvh, 560px);
+    transform-origin: top center;
+  }
+}
+
+/* ---- ≤767.98: PHONE LIVE PAGE — FaceTime-style full-bleed ----------------
+   The stage fills the screen edge-to-edge; the rail floats over it as an
+   inset glass capsule (iOS-26 floating-bar pattern); the session panel is a
+   Liquid Glass BOTTOM SHEET (same showSessionPanel state as the slide-over);
+   the call controls float above the home indicator. Glass stays on the
+   floating layer only — the stage itself sheds its card chrome. */
+@media (max-width: 767.98px) {
+  #streaming-workspace {
+    padding: 0;
+    gap: 0;
+  }
+  .ai-stream-box {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Floating capsule top bar (live mode only — chat keeps the docked bar so
+     its scroll area doesn't sit under a floater) */
+  body.mode-streaming .workspace-container {
+    height: 100%;
+  }
+  body.mode-streaming .sidebar-panel {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    border-bottom: none;
+    background: transparent;
+  }
+  body.mode-streaming .sidebar-panel::before {
+    top: calc(var(--safe-top) + 6px);
+    left: 12px;
+    right: 12px;
+    bottom: auto;
+    height: 48px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-hairline);
+  }
+
+  /* Settings toggle bead drops below the floating bar */
+  .stage-panel-toggle {
+    top: calc(var(--safe-top) + var(--mobile-topbar-h) + 8px);
+    left: 12px;
+  }
+
+  /* Call controls: floating pill clear of the home indicator, 44pt+ targets */
+  .call-controls-wrapper {
+    bottom: calc(var(--safe-bottom) + 16px);
+  }
+  .call-control-btn {
+    width: 52px;
+    height: 52px;
+  }
+  .call-action-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* Focus geometry — model primary: orb scales to the viewport (canvas
+     backbuffer follows automatically via the per-frame parent-rect resize) */
+  .ai-stream-box {
+    --phone-orb: min(380px, 68vw);
+  }
+  .ai-stream-box[data-focus="model"] .streaming-visualizer-container {
+    width: var(--phone-orb);
+    height: var(--phone-orb);
+    top: calc(50% - var(--phone-orb) / 2 - 40px);
+    left: calc(50% - var(--phone-orb) / 2);
+  }
+  /* PIP goes PORTRAIT (FaceTime), tucked under the floating bar */
+  .ai-stream-box[data-focus="model"] .user-pip-box {
+    top: calc(var(--safe-top) + var(--mobile-topbar-h) + 8px);
+    left: calc(100% - 122px); /* same-property morph as desktop (110 + 12 gap) */
+    width: 110px;
+    height: 148px;
+  }
+  /* User primary: the 88px glass ball keeps its design minimum
+     (live_page_orb.md §6 — every shell layer needs real pixels; the old 48px
+     override broke the ball). LOWER-CENTER (mirror of desktop) on the old
+     caption row's register — the rolling caption lives in the transcript. */
+  .ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+    top: calc(100% - var(--phone-caption-bottom) - 26px / 2 - 44px);
+    left: calc(50% - 44px);
+    width: 88px;
+    height: 88px;
+  }
+
+  /* Session panel → BOTTOM SHEET (overrides the ≤1099 slide-over, which also
+     matches at this width; near-opaque overlay material + shadow up). */
+  .session-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: min(72dvh, 640px);
+    transform: translateY(105%);
+    border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding-bottom: calc(24px + var(--safe-bottom));
+    box-shadow: 0 -18px 50px oklch(0% 0 0 / 0.4);
+  }
+  .session-panel.open {
+    transform: translateY(0);
+  }
+  /* Grabber handle */
+  .session-panel::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 40px;
+    height: 5px;
+    transform: translateX(-50%);
+    border-radius: var(--radius-pill);
+    background: var(--text-muted);
+    opacity: 0.4;
+  }
+  .session-panel .panel-content {
+    overscroll-behavior: contain;
+  }
+}
+
+/* Hide the codec tag on very narrow phones — the pill must not crowd the pip */
+@media (max-width: 399.98px) {
+  .status-codec-info {
+    display: none;
+  }
+}
+
+/* Sheet / slide-over motion collapses with the rest of the focus morphs */
+@media (prefers-reduced-motion: reduce) {
+  .session-panel {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Rear camera is NOT mirrored (only selfie views mirror; class set by
+   the flip handler — never present on desktop unless a multi-cam desktop
+   flips, where the same physics applies) */
+.local-camera-feed.facing-environment {
+  transform: none;
+}
+
+/* ---- Tap-to-hide stage chrome (phone live page, FaceTime-style) ----------
+   The handler only toggles under (pointer: coarse) + phone width; the CSS is
+   still scoped to the phone block so a stray class can never touch desktop. */
+@media (max-width: 767.98px) {
+  .stage-panel-toggle,
+  .call-controls-wrapper,
+  body.mode-streaming .sidebar-panel {
+    transition: opacity 0.3s ease;
+  }
+  .ai-stream-box.chrome-hidden .stage-panel-toggle,
+  body.mode-streaming:has(.ai-stream-box.chrome-hidden) .call-controls-wrapper,
+  body.mode-streaming:has(.ai-stream-box.chrome-hidden) .sidebar-panel {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* ---- Phone perf gating ----------------------------------------------------
+   backdrop-filter blur cost scales with radius and stacked layers (the doc's
+   own 15-30% FPS warning, core_concepts.md §2.C) — cap radii on phones and
+   drop one ambient blob. Solid fallbacks already exist via
+   prefers-reduced-transparency. */
+@media (max-width: 767.98px) {
+  .blob-1, .blob-2, .blob-3 {
+    width: min(45vw, 300px);
+    height: min(45vw, 300px);
+    filter: blur(64px);
+  }
+  .blob-3 {
+    display: none; /* one fewer huge blurred compositor layer */
+  }
+  .glass-card {
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+  .sidebar-panel::before {
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+  .ai-stream-box[data-focus="user"] .streaming-visualizer-container {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}

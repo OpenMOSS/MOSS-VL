@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- viewport-fit=cover lets the app draw under the notch/home-indicator (paired
+         with env(safe-area-inset-*) paddings); interactive-widget makes Android
+         resize the layout viewport when the keyboard opens so dvh tracks it. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>MOSS Realtime - Apple Liquid Glass Experience</title>
+    <!-- PWA installability (manifest + icons only — no service worker/offline).
+         Relative URLs throughout: vite base is './' and the app is gateway-proxied. -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eff2f5" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#05060a" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- black-translucent pairs with viewport-fit=cover: the app draws under the
+         status bar and pads itself with env(safe-area-inset-top) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <!-- Satoshi (body/dialogue) is self-hosted via @font-face in src/index.css -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

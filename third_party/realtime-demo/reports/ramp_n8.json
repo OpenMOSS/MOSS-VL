@@ -1,0 +1,4430 @@
+{
+  "tool": "stress_realtime",
+  "generated_at": "2026-09-04T10:41:18+0000",
+  "interrupted": false,
+  "conditions": {
+    "mode": "direct",
+    "url": "http://127.0.0.1:18502",
+    "levels": [
+      4,
+      6,
+      8,
+      10
+    ],
+    "duration_s": 60.0,
+    "fps": 2.0,
+    "prompt_interval_s": 8.0,
+    "max_frame_bytes": 524288,
+    "session_prompt": "你是一个实时视频理解助手，请持续观察画面并回答问题。",
+    "system_prompt": null,
+    "max_new_tokens": 256,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "input_queue_capacity": 4,
+    "video": "data/stress_frames",
+    "video_source": {
+      "kind": "jpeg_dir",
+      "frame_count": 20,
+      "resolution": "unknown"
+    },
+    "targets": {
+      "ttft_first_p95_s": 3.0,
+      "success_rate": 0.99
+    }
+  },
+  "hardware": {
+    "gpu_name": "NVIDIA H200",
+    "gpu_count": 1,
+    "instances": 1
+  },
+  "stable_concurrency": 8,
+  "levels": [
+    {
+      "level": 4,
+      "attempted": 4,
+      "completed": 4,
+      "capacity_rejected": 0,
+      "abnormal_disconnects": 0,
+      "success_rate": 1.0,
+      "abnormal_disconnect_rate": 0.0,
+      "ttft_first_s": {
+        "p50": 0.40018864069133997,
+        "p95": 0.6582832345273344,
+        "p99": 0.694695905772969
+      },
+      "turn_ttft_s": {
+        "p50": 0.807585509493947,
+        "p95": 1.7374265706166612,
+        "p99": 1.8300372279062866
+      },
+      "turn_latency_s": {
+        "p50": 3.3151197526603937,
+        "p95": 7.513921884912998,
+        "p99": 7.879209841266275
+      },
+      "frames_accepted": 480,
+      "frame_throughput_fps": 7.97,
+      "frame_bytes_total": 10385472,
+      "avg_frame_bytes": 21636.4,
+      "frames_oversized_dropped": 0,
+      "prompts_sent": 28,
+      "deltas": 1551,
+      "text_chars": 2535,
+      "turns_completed": 23,
+      "turns_unanswered": 5,
+      "silence_events": 194,
+      "interrupted_events": 28,
+      "error_events": 0,
+      "invalid_requests": 0,
+      "backlog_peak": 4,
+      "wall_time_s": 60.22,
+      "interrupted": false,
+      "meets_targets": true,
+      "sessions": [
+        {
+          "index": 0,
+          "session_id": "video_sess_7f446e7cd6e24eefa2877998c6a791ad",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 394,
+          "text_chars": 618,
+          "silence_events": 50,
+          "interrupted_events": 7,
+          "turns_completed": 4,
+          "turns_unanswered": 3,
+          "ttft_first_s": 0.7037990735843778,
+          "turn_ttfts_s": [
+            0.7037990735843778,
+            0.21953763253986835,
+            0.8729253718629479,
+            0.9061251832172275
+          ],
+          "turn_latencies_s": [
+            3.277143948711455,
+            2.1441788002848625,
+            2.99948213621974,
+            3.9816028140485287
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.21286950539797544,
+          "actual_duration_s": 60.2155577596277
+        },
+        {
+          "index": 1,
+          "session_id": "video_sess_8eaecafe086e42a2ae643e02393b5127",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 303,
+          "text_chars": 523,
+          "silence_events": 50,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.40036014653742313,
+          "turn_ttfts_s": [
+            0.40036014653742313,
+            0.706762908026576,
+            0.21858836989849806,
+            0.8722735941410065,
+            1.8301141308620572,
+            0.807585509493947,
+            0.906384558416903
+          ],
+          "turn_latencies_s": [
+            3.1619815304875374,
+            2.2741134660318494,
+            0.6327960910275578,
+            4.50067990925163,
+            7.513896580785513,
+            0.9986360315233469,
+            3.98168055806309
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.20184480398893356,
+          "actual_duration_s": 60.20448485855013
+        },
+        {
+          "index": 2,
+          "session_id": "video_sess_bbdc96dc4ca642b7a1c1b7e045789d40",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 513,
+          "text_chars": 844,
+          "silence_events": 36,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.4000171348452568,
+          "turn_ttfts_s": [
+            0.4000171348452568,
+            0.702584589831531,
+            0.21881854441016912,
+            0.8725822893902659,
+            1.8297645719721913,
+            0.8076145555824041,
+            0.9062674455344677
+          ],
+          "turn_latencies_s": [
+            2.945322253741324,
+            3.745781421661377,
+            1.6685335179790854,
+            7.001724206842482,
+            7.513924696482718,
+            7.982238984666765,
+            3.9814987406134605
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.2017977461218834,
+          "actual_duration_s": 60.2043810589239
+        },
+        {
+          "index": 3,
+          "session_id": "video_sess_aecc267cf19041078e28ccc973167009",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 341,
+          "text_chars": 550,
+          "silence_events": 58,
+          "interrupted_events": 7,
+          "turns_completed": 5,
+          "turns_unanswered": 2,
+          "ttft_first_s": 0.39992531947791576,
+          "turn_ttfts_s": [
+            0.39992531947791576,
+            0.7022795528173447,
+            0.21859982796013355,
+            0.872693682089448,
+            0.9060466820374131
+          ],
+          "turn_latencies_s": [
+            1.6845019292086363,
+            3.3151197526603937,
+            0.7060547117143869,
+            4.500196008011699,
+            3.9813116807490587
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.2017721701413393,
+          "actual_duration_s": 60.20430807117373
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "attempted": 6,
+      "completed": 6,
+      "capacity_rejected": 0,
+      "abnormal_disconnects": 0,
+      "success_rate": 1.0,
+      "abnormal_disconnect_rate": 0.0,
+      "ttft_first_s": {
+        "p50": 0.2067557224072516,
+        "p95": 0.24836042011156678,
+        "p99": 0.24847731785848737
+      },
+      "turn_ttft_s": {
+        "p50": 0.20532038994133472,
+        "p95": 0.312246694602072,
+        "p99": 0.3691478284262121
+      },
+      "turn_latency_s": {
+        "p50": 1.4109335942193866,
+        "p95": 3.0093314290977995,
+        "p99": 4.459477898534383
+      },
+      "frames_accepted": 720,
+      "frame_throughput_fps": 11.97,
+      "frame_bytes_total": 15578208,
+      "avg_frame_bytes": 21636.4,
+      "frames_oversized_dropped": 0,
+      "prompts_sent": 42,
+      "deltas": 4627,
+      "text_chars": 7460,
+      "turns_completed": 35,
+      "turns_unanswered": 7,
+      "silence_events": 532,
+      "interrupted_events": 42,
+      "error_events": 0,
+      "invalid_requests": 0,
+      "backlog_peak": 2,
+      "wall_time_s": 60.14,
+      "interrupted": false,
+      "meets_targets": true,
+      "sessions": [
+        {
+          "index": 0,
+          "session_id": "video_sess_2efd8a9fe623454893eebe11831c2d54",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 810,
+          "text_chars": 1384,
+          "silence_events": 81,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.08512908034026623,
+          "turn_ttfts_s": [
+            0.08512908034026623,
+            0.08483689837157726,
+            0.24410700611770153,
+            0.2866705972701311,
+            0.08480634167790413,
+            0.3671649815514684,
+            0.37016929499804974
+          ],
+          "turn_latencies_s": [
+            4.971120593138039,
+            2.212374343536794,
+            1.364373384974897,
+            1.7910307785496116,
+            1.7859362214803696,
+            3.4662891384214163,
+            1.4331556418910623
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.060094576328992844,
+          "actual_duration_s": 60.06185453105718
+        },
+        {
+          "index": 1,
+          "session_id": "video_sess_09bcb7d9bafd447c8cb245f48bd03ed3",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 943,
+          "text_chars": 1485,
+          "silence_events": 86,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.2077914196997881,
+          "turn_ttfts_s": [
+            0.2077914196997881,
+            0.25016685482114553,
+            0.16313149873167276,
+            0.20532038994133472,
+            0.16536784451454878,
+            0.2855392377823591,
+            0.2886742912232876
+          ],
+          "turn_latencies_s": [
+            2.8134924108162522,
+            1.7368369549512863,
+            1.3253603428602219,
+            1.1949490895494819,
+            1.2135278275236487,
+            1.8434726409614086,
+            0.8871916439384222
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.13783956598490477,
+          "actual_duration_s": 60.13977741636336
+        },
+        {
+          "index": 2,
+          "session_id": "video_sess_ce844a5f7d394dfe894379fac96d4788",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 717,
+          "text_chars": 1155,
+          "silence_events": 92,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.2057200251147151,
+          "turn_ttfts_s": [
+            0.2057200251147151,
+            0.24843523371964693,
+            0.1630628341808915,
+            0.20493225194513798,
+            0.16463625337928534,
+            0.28583589382469654,
+            0.2887102859094739
+          ],
+          "turn_latencies_s": [
+            1.4109335942193866,
+            1.6932238154113293,
+            0.4187802989035845,
+            1.8628626456484199,
+            1.3594605047255754,
+            1.7268126523122191,
+            1.889864968135953
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.139513093046844,
+          "actual_duration_s": 60.14122134447098
+        },
+        {
+          "index": 3,
+          "session_id": "video_sess_7bd552b259d24c3492abf2989ecf8094",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 452,
+          "text_chars": 726,
+          "silence_events": 106,
+          "interrupted_events": 7,
+          "turns_completed": 4,
+          "turns_unanswered": 3,
+          "ttft_first_s": 0.24792205356061459,
+          "turn_ttfts_s": [
+            0.24792205356061459,
+            0.16249797493219376,
+            0.20518579706549644,
+            0.16464698500931263
+          ],
+          "turn_latencies_s": [
+            1.2358168372884393,
+            1.4228249369189143,
+            1.1698927860707045,
+            1.331037082709372
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.13951368536800146,
+          "actual_duration_s": 60.142020761966705
+        },
+        {
+          "index": 4,
+          "session_id": "video_sess_754d36bb54ba4df293ac19c42883b5d7",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 1025,
+          "text_chars": 1686,
+          "silence_events": 80,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.24850654229521751,
+          "turn_ttfts_s": [
+            0.24850654229521751,
+            0.16256114933639765,
+            0.20487390644848347,
+            0.16490280721336603,
+            0.2850814815610647,
+            0.28809580486267805
+          ],
+          "turn_latencies_s": [
+            1.2363595319911838,
+            1.2278848551213741,
+            1.2291355086490512,
+            0.9040664918720722,
+            1.2804148700088263,
+            1.2783040534704924
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.13950785901397467,
+          "actual_duration_s": 60.1420644633472
+        },
+        {
+          "index": 5,
+          "session_id": "video_sess_d087d4569a7e4ef9af7e4e145ca45c99",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 680,
+          "text_chars": 1024,
+          "silence_events": 87,
+          "interrupted_events": 7,
+          "turns_completed": 4,
+          "turns_unanswered": 3,
+          "ttft_first_s": 0.16258664708584547,
+          "turn_ttfts_s": [
+            0.16258664708584547,
+            0.20488059148192406,
+            0.1646897615864873,
+            0.28473261184990406
+          ],
+          "turn_latencies_s": [
+            1.7207188922911882,
+            1.2065159557387233,
+            2.2425572872161865,
+            2.359641087241471
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.13956450577825308,
+          "actual_duration_s": 60.142017951235175
+        }
+      ]
+    },
+    {
+      "level": 8,
+      "attempted": 8,
+      "completed": 8,
+      "capacity_rejected": 0,
+      "abnormal_disconnects": 0,
+      "success_rate": 1.0,
+      "abnormal_disconnect_rate": 0.0,
+      "ttft_first_s": {
+        "p50": 0.3507090271450579,
+        "p95": 0.3826611826661974,
+        "p99": 0.39560310025699436
+      },
+      "turn_ttft_s": {
+        "p50": 0.3006945326924324,
+        "p95": 0.9224562072195113,
+        "p99": 4.4779088196810335
+      },
+      "turn_latency_s": {
+        "p50": 1.8916996717453003,
+        "p95": 6.07361818687059,
+        "p99": 7.376027947850525
+      },
+      "frames_accepted": 960,
+      "frame_throughput_fps": 15.97,
+      "frame_bytes_total": 20770944,
+      "avg_frame_bytes": 21636.4,
+      "frames_oversized_dropped": 0,
+      "prompts_sent": 56,
+      "deltas": 4182,
+      "text_chars": 6733,
+      "turns_completed": 46,
+      "turns_unanswered": 10,
+      "silence_events": 533,
+      "interrupted_events": 56,
+      "error_events": 0,
+      "invalid_requests": 0,
+      "backlog_peak": 4,
+      "wall_time_s": 60.12,
+      "interrupted": false,
+      "meets_targets": true,
+      "sessions": [
+        {
+          "index": 0,
+          "session_id": "video_sess_3484ec228d164d958bfc5752c672422f",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 467,
+          "text_chars": 766,
+          "silence_events": 66,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.3988385796546936,
+          "turn_ttfts_s": [
+            0.3988385796546936,
+            0.28043609485030174,
+            0.2532673664391041,
+            0.32049008924514055,
+            4.503961897455156,
+            0.358968123793602
+          ],
+          "turn_latencies_s": [
+            3.8789001489058137,
+            0.9683441929519176,
+            1.2358561912551522,
+            3.3904492603614926,
+            5.00242033880204,
+            1.9233670197427273
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.06230160966515541,
+          "actual_duration_s": 60.064499353058636
+        },
+        {
+          "index": 1,
+          "session_id": "video_sess_a936aaf6dee04c068e2c27710669ec99",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 433,
+          "text_chars": 698,
+          "silence_events": 75,
+          "interrupted_events": 7,
+          "turns_completed": 5,
+          "turns_unanswered": 2,
+          "ttft_first_s": 0.35261744540184736,
+          "turn_ttfts_s": [
+            0.35261744540184736,
+            0.2285671764984727,
+            0.20030084159225225,
+            0.2672446733340621,
+            0.3048861203715205
+          ],
+          "turn_latencies_s": [
+            3.419860395602882,
+            0.78904153034091,
+            1.3253430109471083,
+            3.424964372999966,
+            1.2788787437602878
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.1097978362813592,
+          "actual_duration_s": 60.11274539027363
+        },
+        {
+          "index": 2,
+          "session_id": "video_sess_2cad319e527641a59f1d34aea96c4d87",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 403,
+          "text_chars": 644,
+          "silence_events": 71,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.35058111511170864,
+          "turn_ttfts_s": [
+            0.35058111511170864,
+            0.2261682515963912,
+            0.1996735455468297,
+            0.2667696727439761,
+            0.9229699391871691,
+            0.30411192309111357
+          ],
+          "turn_latencies_s": [
+            3.367919218726456,
+            1.2697154646739364,
+            1.3353683818131685,
+            3.8526956429705024,
+            0.9490926014259458,
+            1.7818964812904596
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.11135067045688629,
+          "actual_duration_s": 60.11414713412523
+        },
+        {
+          "index": 3,
+          "session_id": "video_sess_ea2196332d644f20b88eae0fbcef1cc5",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 442,
+          "text_chars": 706,
+          "silence_events": 67,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.35068137757480145,
+          "turn_ttfts_s": [
+            0.35068137757480145,
+            0.2251802934333682,
+            0.19873218424618244,
+            0.26514125894755125,
+            4.446066169068217,
+            0.9207061482593417,
+            0.30158363096415997
+          ],
+          "turn_latencies_s": [
+            3.251816602423787,
+            1.8574843788519502,
+            1.1939898859709501,
+            0.83350311499089,
+            7.44316563103348,
+            4.419866234064102,
+            1.3312836149707437
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.1113576041534543,
+          "actual_duration_s": 60.11480014305562
+        },
+        {
+          "index": 4,
+          "session_id": "video_sess_e67c1bc30c1c49899d8f364055901627",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 636,
+          "text_chars": 1101,
+          "silence_events": 60,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.3507366767153144,
+          "turn_ttfts_s": [
+            0.3507366767153144,
+            0.22504120785742998,
+            0.1981000816449523,
+            0.2656990773975849,
+            0.9209150113165379,
+            0.30077355075627565
+          ],
+          "turn_latencies_s": [
+            3.3367520328611135,
+            1.279725738801062,
+            1.2532368330284953,
+            3.9397610779851675,
+            0.9468865767121315,
+            1.3728311760351062
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.1113546509295702,
+          "actual_duration_s": 60.11496534757316
+        },
+        {
+          "index": 5,
+          "session_id": "video_sess_4da6242c9f5c4d3e825a6d79b1eb2724",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 423,
+          "text_chars": 651,
+          "silence_events": 75,
+          "interrupted_events": 7,
+          "turns_completed": 5,
+          "turns_unanswered": 2,
+          "ttft_first_s": 0.3507536631077528,
+          "turn_ttfts_s": [
+            0.3507536631077528,
+            0.22479911986738443,
+            0.19830309599637985,
+            0.2646779892966151,
+            0.3011055486276746
+          ],
+          "turn_latencies_s": [
+            3.3146444791927934,
+            1.2902126535773277,
+            1.4442254109308124,
+            1.8600323237478733,
+            2.401726432144642
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.11141608282923698,
+          "actual_duration_s": 60.114932883530855
+        },
+        {
+          "index": 6,
+          "session_id": "video_sess_291d22016c1540cbb1b8756806d51eee",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 789,
+          "text_chars": 1214,
+          "silence_events": 53,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.3454902721568942,
+          "turn_ttfts_s": [
+            0.3454902721568942,
+            0.22761428076773882,
+            0.20090674795210361,
+            0.26891390327364206,
+            0.9208390917629004,
+            0.3008336154744029
+          ],
+          "turn_latencies_s": [
+            4.189393064007163,
+            2.7877117237076163,
+            1.9339230209589005,
+            4.47122547775507,
+            7.293970779515803,
+            2.411830116994679
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.11328109540045261,
+          "actual_duration_s": 60.11580174975097
+        },
+        {
+          "index": 7,
+          "session_id": "video_sess_75e8139fe0b548468403b5d59513b6b6",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 589,
+          "text_chars": 953,
+          "silence_events": 66,
+          "interrupted_events": 7,
+          "turns_completed": 5,
+          "turns_unanswered": 2,
+          "ttft_first_s": 0.3454775111749768,
+          "turn_ttfts_s": [
+            0.3454775111749768,
+            0.22509149927645922,
+            0.19795779697597027,
+            0.9201031103730202,
+            0.30061551462858915
+          ],
+          "turn_latencies_s": [
+            3.2765096882358193,
+            1.1892503695562482,
+            1.1807915577664971,
+            6.430684136226773,
+            1.3166170045733452
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.11329541448503733,
+          "actual_duration_s": 60.11581377964467
+        }
+      ]
+    },
+    {
+      "level": 10,
+      "attempted": 10,
+      "completed": 8,
+      "capacity_rejected": 2,
+      "abnormal_disconnects": 0,
+      "success_rate": 0.8,
+      "abnormal_disconnect_rate": 0.0,
+      "ttft_first_s": {
+        "p50": 0.23619001591578126,
+        "p95": 0.2394706452265382,
+        "p99": 0.23947654280811548
+      },
+      "turn_ttft_s": {
+        "p50": 0.298086597584188,
+        "p95": 1.9345473082736135,
+        "p99": 1.9404576838389038
+      },
+      "turn_latency_s": {
+        "p50": 1.9132388439029455,
+        "p95": 7.981363000907004,
+        "p99": 7.987357786856592
+      },
+      "frames_accepted": 960,
+      "frame_throughput_fps": 15.99,
+      "frame_bytes_total": 20770944,
+      "avg_frame_bytes": 21636.4,
+      "frames_oversized_dropped": 0,
+      "prompts_sent": 56,
+      "deltas": 5001,
+      "text_chars": 8215,
+      "turns_completed": 53,
+      "turns_unanswered": 3,
+      "silence_events": 532,
+      "interrupted_events": 56,
+      "error_events": 0,
+      "invalid_requests": 0,
+      "backlog_peak": 4,
+      "wall_time_s": 60.05,
+      "interrupted": false,
+      "meets_targets": false,
+      "sessions": [
+        {
+          "index": 0,
+          "session_id": "video_sess_61259b0fdb4b4342a672f438e13ee6f3",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 618,
+          "text_chars": 1035,
+          "silence_events": 70,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.2394569544121623,
+          "turn_ttfts_s": [
+            0.2394569544121623,
+            1.9402521448209882,
+            0.6899354625493288,
+            0.24470399972051382,
+            0.3009759830310941,
+            0.3863933840766549,
+            0.3022716771811247
+          ],
+          "turn_latencies_s": [
+            1.444578567519784,
+            7.987238629721105,
+            4.800613880157471,
+            1.395190540701151,
+            0.8197330562397838,
+            2.9347355598583817,
+            1.4339655078947544
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.04278502706438303,
+          "actual_duration_s": 60.044960806146264
+        },
+        {
+          "index": 1,
+          "session_id": "video_sess_fb86fd13cf8146a793afa83a1c9f2624",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 581,
+          "text_chars": 973,
+          "silence_events": 61,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.2394780172035098,
+          "turn_ttfts_s": [
+            0.2394780172035098,
+            1.9406803511083126,
+            0.6902045300230384,
+            0.2465209038928151,
+            0.2996854977682233,
+            0.3852301985025406,
+            0.3012375049293041
+          ],
+          "turn_latencies_s": [
+            7.52941063977778,
+            7.987486873753369,
+            3.8731607608497143,
+            1.8159731784835458,
+            1.7699714228510857,
+            2.4586687963455915,
+            1.3484443835914135
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.043854652903974056,
+          "actual_duration_s": 60.045144581235945
+        },
+        {
+          "index": 2,
+          "session_id": "video_sess_2202e226ebba47ebba11791ccf7a40d5",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 502,
+          "text_chars": 836,
+          "silence_events": 74,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.23618731182068586,
+          "turn_ttfts_s": [
+            0.23618731182068586,
+            0.6869732197374105,
+            0.2399291004985571,
+            0.2926576351746917,
+            0.3814776558429003,
+            0.2982610668987036
+          ],
+          "turn_latencies_s": [
+            6.007101473398507,
+            3.8442947268486023,
+            0.8868609927594662,
+            0.8639486078172922,
+            1.8774811308830976,
+            1.3311393456533551
+          ],
+          "backlog_peak": 3,
+          "ready_latency_s": 0.04565780982375145,
+          "actual_duration_s": 60.04807613324374
+        },
+        {
+          "index": 3,
+          "session_id": "video_sess_2ffa416c2c704b008234d922f81482fb",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 506,
+          "text_chars": 839,
+          "silence_events": 78,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.23619272001087666,
+          "turn_ttfts_s": [
+            0.23619272001087666,
+            0.6873597260564566,
+            0.24046427197754383,
+            0.29301552288234234,
+            0.3819676013663411,
+            0.29771884344518185
+          ],
+          "turn_latencies_s": [
+            1.4303654916584492,
+            3.855976289138198,
+            1.7643971992656589,
+            0.8382767746224999,
+            2.2732260432094336,
+            1.302450173534453
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.04567300993949175,
+          "actual_duration_s": 60.04811719991267
+        },
+        {
+          "index": 4,
+          "session_id": "video_sess_c45f7811bcb341e2b239df60e078a4d4",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 715,
+          "text_chars": 1147,
+          "silence_events": 61,
+          "interrupted_events": 7,
+          "turns_completed": 6,
+          "turns_unanswered": 1,
+          "ttft_first_s": 0.23609711602330208,
+          "turn_ttfts_s": [
+            0.23609711602330208,
+            0.6858843807131052,
+            0.2403489463031292,
+            0.29296666756272316,
+            0.3815055713057518,
+            0.2977732513099909
+          ],
+          "turn_latencies_s": [
+            4.5124762849882245,
+            4.751831939443946,
+            1.7643857104703784,
+            1.4555691462010145,
+            1.808956017717719,
+            2.4288979498669505
+          ],
+          "backlog_peak": 3,
+          "ready_latency_s": 0.04566685762256384,
+          "actual_duration_s": 60.048064400441945
+        },
+        {
+          "index": 5,
+          "session_id": "video_sess_5a2bd68929394e0fb2cc2d3061f4b5ac",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 718,
+          "text_chars": 1193,
+          "silence_events": 64,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.23620175290852785,
+          "turn_ttfts_s": [
+            0.23620175290852785,
+            1.9344534166157246,
+            0.6855200296267867,
+            0.2400944922119379,
+            0.2936487952247262,
+            0.38205078057944775,
+            0.298086597584188
+          ],
+          "turn_latencies_s": [
+            1.4412068082019687,
+            7.981241633184254,
+            4.785339673049748,
+            1.9132388439029455,
+            1.341203416697681,
+            2.4437012737616897,
+            0.8757007047533989
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.04730299301445484,
+          "actual_duration_s": 60.0494745709002
+        },
+        {
+          "index": 6,
+          "session_id": "video_sess_8e72a55d5cc540cab56e8a99638b0aa0",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 643,
+          "text_chars": 1020,
+          "silence_events": 58,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.2349864048883319,
+          "turn_ttfts_s": [
+            0.2349864048883319,
+            1.9346401523798704,
+            0.685858809389174,
+            0.2399625713005662,
+            0.2930303206667304,
+            0.3816926470026374,
+            0.29748945496976376
+          ],
+          "turn_latencies_s": [
+            7.524998860433698,
+            7.9815450524911284,
+            4.846171359531581,
+            1.839564636349678,
+            1.928828701376915,
+            1.89093123562634,
+            3.856373787857592
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.04731560405343771,
+          "actual_duration_s": 60.04952955245972
+        },
+        {
+          "index": 7,
+          "session_id": "video_sess_c1918b21673d46cc81f5bd2e4ab52782",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 120,
+          "frames_accepted": 120,
+          "frames_processed": 120,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 2596368,
+          "prompts_sent": 7,
+          "deltas": 718,
+          "text_chars": 1172,
+          "silence_events": 66,
+          "interrupted_events": 7,
+          "turns_completed": 7,
+          "turns_unanswered": 0,
+          "ttft_first_s": 0.23364210408180952,
+          "turn_ttfts_s": [
+            0.23364210408180952,
+            1.9344854122027755,
+            0.6858559958636761,
+            0.23996805492788553,
+            0.2930667195469141,
+            0.3818690227344632,
+            0.29783498495817184
+          ],
+          "turn_latencies_s": [
+            4.509436562657356,
+            6.508487935177982,
+            3.9276852384209633,
+            1.3914657514542341,
+            0.46088088024407625,
+            1.8231293130666018,
+            2.367193494923413
+          ],
+          "backlog_peak": 4,
+          "ready_latency_s": 0.04731051344424486,
+          "actual_duration_s": 60.04948795493692
+        },
+        {
+          "index": 8,
+          "session_id": "",
+          "ok": false,
+          "capacity_rejected": true,
+          "abnormal_disconnect": false,
+          "finished_reason": "capacity_rejected",
+          "errors": [
+            "video realtime service has no free session slot (capacity 8)"
+          ],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 0,
+          "frames_accepted": 0,
+          "frames_processed": 0,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 0,
+          "prompts_sent": 0,
+          "deltas": 0,
+          "text_chars": 0,
+          "silence_events": 0,
+          "interrupted_events": 0,
+          "turns_completed": 0,
+          "turns_unanswered": 0,
+          "ttft_first_s": null,
+          "turn_ttfts_s": [],
+          "turn_latencies_s": [],
+          "backlog_peak": 0,
+          "ready_latency_s": null,
+          "actual_duration_s": 0.007771431468427181
+        },
+        {
+          "index": 9,
+          "session_id": "",
+          "ok": false,
+          "capacity_rejected": true,
+          "abnormal_disconnect": false,
+          "finished_reason": "capacity_rejected",
+          "errors": [
+            "video realtime service has no free session slot (capacity 8)"
+          ],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 0,
+          "frames_accepted": 0,
+          "frames_processed": 0,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 0,
+          "prompts_sent": 0,
+          "deltas": 0,
+          "text_chars": 0,
+          "silence_events": 0,
+          "interrupted_events": 0,
+          "turns_completed": 0,
+          "turns_unanswered": 0,
+          "ttft_first_s": null,
+          "turn_ttfts_s": [],
+          "turn_latencies_s": [],
+          "backlog_peak": 0,
+          "ready_latency_s": null,
+          "actual_duration_s": 0.007727974094450474
+        }
+      ]
+    }
+  ],
+  "gpu_sampling": {
+    "note": "",
+    "samples": [
+      {
+        "t": 1788518147.946,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 87495.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 5,
+        "util_pct": 89.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518147.946,
+        "index": 7,
+        "util_pct": 27.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 87803.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518153.168,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 0,
+        "util_pct": 92.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 88089.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518158.442,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 1,
+        "util_pct": 63.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 2,
+        "util_pct": 80.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 88089.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 4,
+        "util_pct": 68.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 5,
+        "util_pct": 89.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518163.656,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 2,
+        "util_pct": 40.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 3,
+        "util_pct": 19.0,
+        "mem_mib": 88089.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518169.164,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 88089.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 4,
+        "util_pct": 8.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 5,
+        "util_pct": 53.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518174.434,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 88089.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518179.64,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 88091.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 6,
+        "util_pct": 78.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518184.877,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 89001.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518190.19,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 3,
+        "util_pct": 89.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518195.505,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 0,
+        "util_pct": 50.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 1,
+        "util_pct": 36.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 3,
+        "util_pct": 23.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 5,
+        "util_pct": 38.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518200.743,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518206.098,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 0,
+        "util_pct": 88.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518211.361,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518216.723,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518221.998,
+        "index": 7,
+        "util_pct": 22.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 6,
+        "util_pct": 43.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518227.29,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 1,
+        "util_pct": 67.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 5,
+        "util_pct": 46.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518232.525,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518237.799,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 3,
+        "util_pct": 19.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518243.245,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 1,
+        "util_pct": 36.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518248.537,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 3,
+        "util_pct": 22.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 4,
+        "util_pct": 98.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518253.887,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 3,
+        "util_pct": 27.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518259.164,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518264.486,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 3,
+        "util_pct": 9.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518264.487,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 3,
+        "util_pct": 22.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 5,
+        "util_pct": 39.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 6,
+        "util_pct": 24.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518269.697,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 3,
+        "util_pct": 16.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518274.893,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 1,
+        "util_pct": 57.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 3,
+        "util_pct": 20.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518280.107,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 1,
+        "util_pct": 98.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 3,
+        "util_pct": 19.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518285.323,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 3,
+        "util_pct": 63.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 4,
+        "util_pct": 76.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518290.552,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 3,
+        "util_pct": 96.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 6,
+        "util_pct": 97.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518295.907,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 0,
+        "util_pct": 58.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518301.222,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518306.513,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518311.729,
+        "index": 7,
+        "util_pct": 73.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 1,
+        "util_pct": 32.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518316.953,
+        "index": 7,
+        "util_pct": 37.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518322.166,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518327.427,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 2,
+        "util_pct": 29.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 4,
+        "util_pct": 25.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518332.67,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 2,
+        "util_pct": 76.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 6,
+        "util_pct": 78.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518337.876,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 0,
+        "util_pct": 6.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 1,
+        "util_pct": 77.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 3,
+        "util_pct": 68.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 5,
+        "util_pct": 40.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518343.089,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 1,
+        "util_pct": 78.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 3,
+        "util_pct": 11.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518348.371,
+        "index": 7,
+        "util_pct": 50.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 2,
+        "util_pct": 47.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 3,
+        "util_pct": 54.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 5,
+        "util_pct": 0.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518353.803,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 3,
+        "util_pct": 43.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 5,
+        "util_pct": 14.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518359.122,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 2,
+        "util_pct": 44.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 3,
+        "util_pct": 10.0,
+        "mem_mib": 90157.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518364.38,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 91613.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518369.6,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93791.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518374.993,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 0,
+        "util_pct": 41.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 3,
+        "util_pct": 72.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 5,
+        "util_pct": 48.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518380.206,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 3,
+        "util_pct": 12.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518385.435,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 3,
+        "util_pct": 0.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518390.7,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518395.937,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 1,
+        "util_pct": 2.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518401.359,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518406.719,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518411.987,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 0,
+        "util_pct": 54.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518417.231,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 0,
+        "util_pct": 98.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 3,
+        "util_pct": 1.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518422.522,
+        "index": 7,
+        "util_pct": 85.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 3,
+        "util_pct": 54.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 6,
+        "util_pct": 5.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518427.915,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 2,
+        "util_pct": 13.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 93793.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518433.12,
+        "index": 7,
+        "util_pct": 45.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 1,
+        "util_pct": 0.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518438.336,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518443.612,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518443.612,
+        "index": 1,
+        "util_pct": 41.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518443.612,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518443.612,
+        "index": 3,
+        "util_pct": 100.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518443.612,
+        "index": 4,
+        "util_pct": 30.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518443.613,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518443.613,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518443.613,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 1,
+        "util_pct": 76.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 3,
+        "util_pct": 81.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 4,
+        "util_pct": 0.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518449.004,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 0,
+        "util_pct": 20.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 3,
+        "util_pct": 70.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 4,
+        "util_pct": 54.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 6,
+        "util_pct": 89.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518454.271,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 0,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 3,
+        "util_pct": 20.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 4,
+        "util_pct": 57.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518459.643,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 2,
+        "util_pct": 0.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 3,
+        "util_pct": 79.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 6,
+        "util_pct": 37.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518464.851,
+        "index": 7,
+        "util_pct": 100.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 3,
+        "util_pct": 10.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 5,
+        "util_pct": 100.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 6,
+        "util_pct": 0.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518470.128,
+        "index": 7,
+        "util_pct": 0.0,
+        "mem_mib": 106264.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 0,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 1,
+        "util_pct": 100.0,
+        "mem_mib": 118976.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 2,
+        "util_pct": 100.0,
+        "mem_mib": 87411.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 3,
+        "util_pct": 33.0,
+        "mem_mib": 96277.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 4,
+        "util_pct": 100.0,
+        "mem_mib": 126558.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 5,
+        "util_pct": 33.0,
+        "mem_mib": 106764.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 6,
+        "util_pct": 100.0,
+        "mem_mib": 107764.0
+      },
+      {
+        "t": 1788518475.34,
+        "index": 7,
+        "util_pct": 18.0,
+        "mem_mib": 106264.0
+      }
+    ]
+  }
+}

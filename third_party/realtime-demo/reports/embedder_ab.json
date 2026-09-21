@@ -1,0 +1,850 @@
+{
+  "corpus_size": 26,
+  "query_count": 8,
+  "retro_query_count": 0,
+  "query_fallback_to_all": true,
+  "corpus": [
+    {
+      "id": 2,
+      "kind": "utterance",
+      "role": "user",
+      "text": "画面里发生了什么？"
+    },
+    {
+      "id": 4,
+      "kind": "utterance",
+      "role": "user",
+      "text": "画面里发生了什么？"
+    },
+    {
+      "id": 5,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "中央有一个红色圆圈，背景是彩虹色的渐变。左下角有一个绿色的矩形。没有其他可见的内容或动作。"
+    },
+    {
+      "id": 8,
+      "kind": "utterance",
+      "role": "user",
+      "text": "画面里发生了什么？"
+    },
+    {
+      "id": 9,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "中央是一个红色的圆形，背景是紫色、蓝色和绿色的渐变。左下方有一个绿色的矩形。"
+    },
+    {
+      "id": 12,
+      "kind": "utterance",
+      "role": "user",
+      "text": "请描述画面中的内容。"
+    },
+    {
+      "id": 13,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "中央有一个红色的圆圈，外围有白色描边。背景是多彩渐变，色彩由紫色、粉色、橙色和绿色交织而成。左下角有一个绿色的矩形。"
+    },
+    {
+      "id": 14,
+      "kind": "utterance",
+      "role": "user",
+      "text": "你好 请实时描述当前画面"
+    },
+    {
+      "id": 16,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "一名戴着白色头戴式耳机的年轻男子，正站在一个灯光明亮的室内环境中。他身后可以看到天花板上的灯光。目前，只能看到他的上半身。"
+    },
+    {
+      "id": 19,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "男子依然站在灯光明亮的室内，背景是天花板上的灯光。他穿着白色T恤，戴着白色头戴式耳机，嘴巴微微张开，神情专注，似乎正在说话。"
+    },
+    {
+      "id": 22,
+      "kind": "utterance",
+      "role": "user",
+      "text": "请描述画面中的内容。"
+    },
+    {
+      "id": 24,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "背景呈现多彩渐变效果。中央有一个红色的圆形，圆形外围有一圈白色描边。左下方可以看到一个绿色的矩形。除此之外，没有其他明显的物体或元素。"
+    },
+    {
+      "id": 26,
+      "kind": "utterance",
+      "role": "user",
+      "text": "实时描述当前画面"
+    },
+    {
+      "id": 28,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "一位戴着白色头戴式耳机的年轻男子正对着摄像头说话，他身穿浅色T恤，背景是办公室环境，能看到天花板上的灯具和办公桌。男子正在讲话，表情自然，偶尔会用手势辅助表达。"
+    },
+    {
+      "id": 31,
+      "kind": "utterance",
+      "role": "user",
+      "text": "实时描述当前画面"
+    },
+    {
+      "id": 32,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "一名年轻男子正对着摄像头说话。他戴着白色的大耳机，穿着浅灰色T恤，身处一个灯光明亮的办公室。"
+    },
+    {
+      "id": 35,
+      "kind": "utterance",
+      "role": "user",
+      "text": "你是谁"
+    },
+    {
+      "id": 36,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "我是MOSS-VL，由OpenMOSS团队研发的多模态视频理解模型。我能解析视频中的物体、事件、时空关系和人物情感，支持跨模态问答与实时交互，致力于让机器更好地理解动态世界。"
+    },
+    {
+      "id": 39,
+      "kind": "utterance",
+      "role": "user",
+      "text": "实时描述当前画面内容"
+    },
+    {
+      "id": 42,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "男子抬起右手，手掌朝前挥动，像是在打招呼。随后，他用右手的手指揉了揉自己的右眼和脸颊，动作比较随意。"
+    },
+    {
+      "id": 44,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "男子放下手，对着摄像头说话。他伸出右手，比出一个“V”字手势，保持了几秒后又把手放下了。背景依旧是明亮的办公室环境。"
+    },
+    {
+      "id": 45,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "男子继续对着摄像头说话，表情比较平静，偶尔会眨眼。他保持正面朝向，没有明显的手部动作。"
+    },
+    {
+      "id": 48,
+      "kind": "utterance",
+      "role": "user",
+      "text": "你好"
+    },
+    {
+      "id": 49,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "你好有什么我可以帮你的吗？"
+    },
+    {
+      "id": 50,
+      "kind": "utterance",
+      "role": "user",
+      "text": "你是什么模型"
+    },
+    {
+      "id": 52,
+      "kind": "utterance",
+      "role": "assistant",
+      "text": "我是MOSS-VL，由OpenMOSS团队研发的多模态视频理解模型。我的名字灵感来自《流浪地球》中的MOSS，象征着智能与探索。我专注于帮助人类更好地理解和交互视频内容，具备实时与离线视频分析、跨模态问答等能力。如果你有任何问题，我都会尽力为你解答。"
+    }
+  ],
+  "queries": [
+    "画面里发生了什么？",
+    "请描述画面中的内容。",
+    "实时描述当前画面",
+    "你是谁",
+    "实时描述当前画面内容",
+    "你好 请实时描述当前画面",
+    "你好",
+    "你是什么模型"
+  ],
+  "embedders": {
+    "A_hashing": {
+      "name": "hashing-ngram",
+      "dim": 512,
+      "load_s": 0.0,
+      "rss_delta_mb": 0.0,
+      "timing": {
+        "n": 102,
+        "mean_ms": 0.04,
+        "p50_ms": 0.02,
+        "p95_ms": 0.09,
+        "max_ms": 0.13
+      },
+      "top1_top5_gap_mean": 0.7071,
+      "top1_top5_gap_min": 0.5133,
+      "per_query": [
+        {
+          "query": "画面里发生了什么？",
+          "top": [
+            {
+              "item_id": 2,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 4,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 8,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 12,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2778,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2778,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "请描述画面中的内容。",
+          "top": [
+            {
+              "item_id": 12,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.4867,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.3651,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.3651,
+              "text": "实时描述当前画面"
+            }
+          ]
+        },
+        {
+          "query": "实时描述当前画面",
+          "top": [
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8885,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8452,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.3651,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你是谁",
+          "top": [
+            {
+              "item_id": 35,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你是谁"
+            },
+            {
+              "item_id": 50,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.4045,
+              "text": "你是什么模型"
+            },
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2582,
+              "text": "你好"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.1826,
+              "text": "你好有什么我可以帮你的吗？"
+            },
+            {
+              "item_id": 9,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.083,
+              "text": "中央是一个红色的圆形，背景是紫色、蓝色和绿色的渐变。左下方有一个绿色的矩形。"
+            }
+          ]
+        },
+        {
+          "query": "实时描述当前画面内容",
+          "top": [
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8885,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8885,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7509,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.4867,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你好 请实时描述当前画面",
+          "top": [
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8452,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8452,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7509,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.378,
+              "text": "你好"
+            }
+          ]
+        },
+        {
+          "query": "你好",
+          "top": [
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你好"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.4714,
+              "text": "你好有什么我可以帮你的吗？"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.378,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 35,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2582,
+              "text": "你是谁"
+            },
+            {
+              "item_id": 50,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.1741,
+              "text": "你是什么模型"
+            }
+          ]
+        },
+        {
+          "query": "你是什么模型",
+          "top": [
+            {
+              "item_id": 50,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你是什么模型"
+            },
+            {
+              "item_id": 35,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.4045,
+              "text": "你是谁"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.2462,
+              "text": "你好有什么我可以帮你的吗？"
+            },
+            {
+              "item_id": 2,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2132,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 8,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.2132,
+              "text": "画面里发生了什么？"
+            }
+          ]
+        }
+      ]
+    },
+    "B_bge_m3": {
+      "name": "bge-m3",
+      "dim": 1024,
+      "load_s": 9.624,
+      "rss_delta_mb": 2082.8,
+      "timing": {
+        "n": 102,
+        "mean_ms": 444.11,
+        "p50_ms": 397.37,
+        "p95_ms": 797.83,
+        "max_ms": 901.25
+      },
+      "top1_top5_gap_mean": 0.278,
+      "top1_top5_gap_min": 0.1064,
+      "per_query": [
+        {
+          "query": "画面里发生了什么？",
+          "top": [
+            {
+              "item_id": 2,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 4,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 8,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 12,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8936,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8936,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "请描述画面中的内容。",
+          "top": [
+            {
+              "item_id": 12,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 8,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8936,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 2,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8936,
+              "text": "画面里发生了什么？"
+            },
+            {
+              "item_id": 4,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8936,
+              "text": "画面里发生了什么？"
+            }
+          ]
+        },
+        {
+          "query": "实时描述当前画面",
+          "top": [
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9865,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9094,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7189,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你是谁",
+          "top": [
+            {
+              "item_id": 35,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你是谁"
+            },
+            {
+              "item_id": 50,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7283,
+              "text": "你是什么模型"
+            },
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.6283,
+              "text": "你好"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.5631,
+              "text": "你好有什么我可以帮你的吗？"
+            },
+            {
+              "item_id": 2,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.5144,
+              "text": "画面里发生了什么？"
+            }
+          ]
+        },
+        {
+          "query": "实时描述当前画面内容",
+          "top": [
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9865,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9865,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8926,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7159,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你好 请实时描述当前画面",
+          "top": [
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 31,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9094,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 26,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.9094,
+              "text": "实时描述当前画面"
+            },
+            {
+              "item_id": 39,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.8926,
+              "text": "实时描述当前画面内容"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.86,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你好",
+          "top": [
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你好"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.8397,
+              "text": "你好有什么我可以帮你的吗？"
+            },
+            {
+              "item_id": 14,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7017,
+              "text": "你好 请实时描述当前画面"
+            },
+            {
+              "item_id": 12,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.6323,
+              "text": "请描述画面中的内容。"
+            },
+            {
+              "item_id": 22,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.6323,
+              "text": "请描述画面中的内容。"
+            }
+          ]
+        },
+        {
+          "query": "你是什么模型",
+          "top": [
+            {
+              "item_id": 50,
+              "kind": "utterance",
+              "role": "user",
+              "score": 1.0,
+              "text": "你是什么模型"
+            },
+            {
+              "item_id": 35,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.7283,
+              "text": "你是谁"
+            },
+            {
+              "item_id": 48,
+              "kind": "utterance",
+              "role": "user",
+              "score": 0.5873,
+              "text": "你好"
+            },
+            {
+              "item_id": 36,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.5674,
+              "text": "我是MOSS-VL，由OpenMOSS团队研发的多模态视频理解模型。我能解析视频中的物体、事件、时空关系和人物情感，支持跨模态问答与实时交互，致力于让机器更好地理解动态世界。"
+            },
+            {
+              "item_id": 49,
+              "kind": "utterance",
+              "role": "assistant",
+              "score": 0.5471,
+              "text": "你好有什么我可以帮你的吗？"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

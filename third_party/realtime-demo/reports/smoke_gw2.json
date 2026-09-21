@@ -1,0 +1,121 @@
+{
+  "tool": "stress_realtime",
+  "generated_at": "2026-09-04T10:05:47+0000",
+  "interrupted": false,
+  "conditions": {
+    "mode": "gateway",
+    "url": "http://127.0.0.1:8100",
+    "levels": [
+      1
+    ],
+    "duration_s": 20.0,
+    "fps": 2.0,
+    "prompt_interval_s": 6.0,
+    "max_frame_bytes": 524288,
+    "session_prompt": "你是一个实时视频理解助手，请持续观察画面并回答问题。",
+    "system_prompt": null,
+    "max_new_tokens": 256,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "input_queue_capacity": 4,
+    "video": "data/stress_frames",
+    "video_source": {
+      "kind": "jpeg_dir",
+      "frame_count": 20,
+      "resolution": "unknown"
+    },
+    "targets": {
+      "ttft_first_p95_s": 3.0,
+      "success_rate": 0.99
+    }
+  },
+  "hardware": {
+    "gpu_name": "unknown",
+    "gpu_count": 0,
+    "instances": 1
+  },
+  "stable_concurrency": 1,
+  "levels": [
+    {
+      "level": 1,
+      "attempted": 1,
+      "completed": 1,
+      "capacity_rejected": 0,
+      "abnormal_disconnects": 0,
+      "success_rate": 1.0,
+      "abnormal_disconnect_rate": 0.0,
+      "ttft_first_s": {
+        "p50": 0.3138101091608405,
+        "p95": 0.3138101091608405,
+        "p99": 0.3138101091608405
+      },
+      "turn_ttft_s": {
+        "p50": 0.3138101091608405,
+        "p95": 0.3138101091608405,
+        "p99": 0.3138101091608405
+      },
+      "turn_latency_s": {
+        "p50": 0.9915136145427823,
+        "p95": 0.9915136145427823,
+        "p99": 0.9915136145427823
+      },
+      "frames_accepted": 40,
+      "frame_throughput_fps": 1.99,
+      "frame_bytes_total": 865456,
+      "avg_frame_bytes": 21636.4,
+      "frames_oversized_dropped": 0,
+      "prompts_sent": 3,
+      "deltas": 163,
+      "text_chars": 278,
+      "turns_completed": 1,
+      "turns_unanswered": 2,
+      "silence_events": 40,
+      "interrupted_events": 3,
+      "error_events": 0,
+      "invalid_requests": 0,
+      "backlog_peak": 2,
+      "wall_time_s": 20.1,
+      "interrupted": false,
+      "meets_targets": true,
+      "sessions": [
+        {
+          "index": 0,
+          "session_id": "gws-b7ab9d1fd0714284",
+          "ok": true,
+          "capacity_rejected": false,
+          "abnormal_disconnect": false,
+          "finished_reason": "duration_elapsed",
+          "errors": [],
+          "error_events": 0,
+          "invalid_requests": 0,
+          "frames_sent": 40,
+          "frames_accepted": 40,
+          "frames_processed": 40,
+          "frames_oversized_dropped": 0,
+          "frame_bytes": 865456,
+          "prompts_sent": 3,
+          "deltas": 163,
+          "text_chars": 278,
+          "silence_events": 40,
+          "interrupted_events": 3,
+          "turns_completed": 1,
+          "turns_unanswered": 2,
+          "ttft_first_s": 0.3138101091608405,
+          "turn_ttfts_s": [
+            0.3138101091608405
+          ],
+          "turn_latencies_s": [
+            0.9915136145427823
+          ],
+          "backlog_peak": 2,
+          "ready_latency_s": 0.09179461561143398,
+          "actual_duration_s": 20.09486217610538
+        }
+      ]
+    }
+  ],
+  "gpu_sampling": {
+    "note": "",
+    "samples": []
+  }
+}

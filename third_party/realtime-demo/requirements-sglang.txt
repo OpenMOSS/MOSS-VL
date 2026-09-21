@@ -1,0 +1,30 @@
+# MOSS-VL-Realtime_Demo_App backend — OFFLINE-CHAT ENGINE environment (.venv-sglang)
+# This is NOT the realtime sglang-omni backend environment. For realtime use
+# https://github.com/fnlp-vision/sglang-omni-realtime and its pyproject.toml.
+#
+# The offline chat plane (server/adapters/vlm/moss_vl_sglang/) serves the
+# OFFLINE checkpoint through `sglang.launch_server` sidecars. MOSS-VL
+# (model_type "moss_vl") is NOT servable by stock sglang — its transformers
+# fallback is text-only — it requires the fnlp-vision FORK (v0.5.5.post3),
+# which bundles the native model + multimodal processor
+# (srt/models/moss_vl.py, srt/multimodal/processors/moss_vl.py) and
+# force-selects the flashinfer prefill attention backend for it.
+#
+# This is a SOURCE install of the fork, not a PyPI pin — build the venv with:
+#
+#     bash scripts/build_venv_sglang.sh
+#
+# (installs /inspire/hdd/project/video-understanding/public/personal/train/
+# sglang/python[all], non-editable so later fork-repo churn can't silently
+# change serving; rebuild to pick up fork updates. Key transitive pins:
+# torch==2.8.0, flashinfer_python==0.5.2, flashinfer_cubin==0.5.2,
+# sgl-kernel==0.3.17.post1.)
+#
+# Process isolation only: the gateway talks to the sidecars over localhost
+# HTTP, so this env's torch/transformers never collide with the main .venv
+# (transformers 4.57.1). Boxes without this venv boot fine — run_backend.sh
+# downgrades OFFLINE_PROVIDER to none and chat falls back to the online pool.
+#
+# NOTE on Blackwell (sm_120): flashinfer 0.5.2 cubins may be missing for
+# sm_120 and the fork has no non-flashinfer path for MossVL — if the smoke
+# test fails there, set OFFLINE_PROVIDER=none on that box.

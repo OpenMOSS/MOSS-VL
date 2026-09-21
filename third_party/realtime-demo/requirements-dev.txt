@@ -1,0 +1,2 @@
+# Install after the appropriate runtime requirements. No model engine pins here.
+pytest>=8,<10

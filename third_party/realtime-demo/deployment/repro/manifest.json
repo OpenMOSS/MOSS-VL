@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "platform": "linux-x86_64",
+  "python": "3.12.12",
+  "uv": "0.12.11",
+  "node": {
+    "version": "22.12.0",
+    "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-x64.tar.xz",
+    "sha256": "22982235e1b71fa8850f82edd09cdae7e3f32df1764a9ec298c72d25ef2c164f"
+  },
+  "backend": {
+    "url": "https://github.com/fnlp-vision/sglang-omni-realtime.git"
+  },
+  "models": {
+    "vlm": {
+      "repo_id": "OpenMOSS-Team/MOSS-VL-Realtime-SGLANG",
+      "profile": "base",
+      "directory": "vlm"
+    },
+    "memory_llm": {
+      "repo_id": "Qwen/Qwen3-4B-Instruct-2507",
+      "profile": "memory",
+      "directory": "memory/qwen3-4b"
+    },
+    "memory_text": {
+      "repo_id": "BAAI/bge-m3",
+      "profile": "memory",
+      "directory": "memory/bge-m3"
+    },
+    "memory_image": {
+      "repo_id": "OFA-Sys/chinese-clip-vit-base-patch16",
+      "profile": "memory",
+      "directory": "memory/chinese-clip"
+    },
+    "asr": {
+      "repo_id": "FunAudioLLM/SenseVoiceSmall",
+      "profile": "asr",
+      "directory": "asr/SenseVoiceSmall"
+    },
+    "vad": {
+      "repo_id": "funasr/fsmn-vad",
+      "profile": "asr",
+      "directory": "asr/fsmn-vad"
+    },
+    "tts": {
+      "repo_id": "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
+      "profile": "tts",
+      "directory": "tts/MOSS-TTS-Nano-100M-ONNX"
+    },
+    "tts_codec": {
+      "repo_id": "OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX",
+      "profile": "tts",
+      "directory": "tts/MOSS-Audio-Tokenizer-Nano-ONNX"
+    }
+  }
+}

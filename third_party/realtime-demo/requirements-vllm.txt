@@ -1,0 +1,55 @@
+# MOSS-VL-Realtime_Demo_App — vLLM-Omni TTS engine env (.venv-vllm)
+# Once .venv-vllm exists, run_backend.sh
+# DEFAULTS TTS_PROVIDER=vllm_omni (force the pytorch sidecar back with
+# TTS_PROVIDER=moss_tts_nano); the backend spawns `.venv-vllm/bin/vllm serve
+# <Nano ckpt> --omni` per placement TtsSpec (server/sidecars.py).
+#
+# SEPARATE venv, always: vllm pins torch==2.11.0 and its own transformers
+# range, which conflict with the main .venv (transformers 4.57.1 for the
+# MOSS-VL streaming code). Never install these into .venv.
+#
+# The GPU box is air-gapped — install OFFLINE from the pre-built wheelhouse
+# (downloaded 2026-07-11 on the CPU box via its proxy; CUDA variant cu129 to
+# match the H200 driver, which is what vllm 0.24.0's PyPI binaries are
+# compiled against):
+#
+#   cd /inspire/hdd/project/video-understanding/public/personal/chwang/live/MOSS-VL-Realtime_Demo_App
+#   python3.12 -m venv .venv-vllm
+#   PIP_CONSTRAINT=/dev/null .venv-vllm/bin/pip install --no-index \
+#       --find-links ../wheelhouse/vllm-omni -r requirements-vllm.txt
+#   .venv-vllm/bin/vllm --version    # sanity
+#
+# PIP_CONSTRAINT=/dev/null is LOAD-BEARING on the GPU box: it runs an NGC
+# PyTorch container image that globally constrains pip to the container's own
+# torch build (torch==2.8.0a0+…nv25.6 via PIP_CONSTRAINT/pip.conf), which
+# follows into fresh venvs and collides with vllm's torch==2.11.0 pin
+# (ResolutionImpossible). /dev/null = empty constraints; it overrides both the
+# env var and any pip.conf entry. Diagnose with: env | grep -i pip;
+# pip config list.
+#
+# vllm-omni does NOT pip-depend on vllm — both must be pinned together
+# (version-matched pair per the vLLM-Omni install docs).
+#
+# Wheelhouse floor: one wheel (cryptography) is manylinux_2_34 → the GPU box
+# needs glibc >= 2.34 (Ubuntu 22.04+; `ldd --version`). Everything else is
+# <= manylinux_2_28. nvidia-cutlass-dsl-libs-cu13 in the lock is vLLM's OWN
+# pin (Requires-Dist: nvidia-cutlass-dsl[cu13]) — expected on the cu129 build.
+#
+# The vllm wheel in the house is the +cu129 GitHub-release variant
+# (vllm-0.24.0+cu129-…whl). The bare PyPI vllm-0.24.0 wheel is a CUDA-13
+# build — it imports fine at install time but dies at runtime with
+# `ImportError: libcudart.so.13` on this CUDA 12.9 box. `vllm==0.24.0` below
+# is satisfied by 0.24.0+cu129 (PEP 440 local versions match ==).
+vllm==0.24.0
+vllm-omni==0.24.0
+
+# POST-INSTALL (REQUIRED for TTS_PROVIDER=moss_tts_realtime): after building
+# this venv, run
+#   .venv-vllm/bin/python scripts/patch_vllm_omni_moss_codec.py
+# It is idempotent. vllm-omni 0.24.0's MOSS-Audio-Tokenizer codec loader builds
+# 6 encoder/decoder projections as unconditional nn.Linear that the real
+# checkpoint ships as nn.Identity() (equal dims) — so serving MOSS-TTS-Realtime
+# otherwise dies with "MOSS Audio Tokenizer weights were not fully loaded:
+# loaded=1600/1606". The patch makes them conditional-Identity (the checkpoint's
+# true architecture). Upstream bug — not fixed in any release incl. 0.25.0rc1.
+# The moss_tts_nano/vllm_omni provider does NOT need the patch.
