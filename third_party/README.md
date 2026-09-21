@@ -9,7 +9,7 @@ third_party/
 ├── flash-attention-src/   # FlashAttention-3 backend specialized for MOSS-VL cross-attention
 ├── sglang/                # SGLang snapshot and usage notes for offline serving
 ├── sglang-omni/           # SGLang-Omni fork specialized for realtime multi-stream serving
-└── realtime-demo/         # Browser demo app: camera/screen input, ASR/TTS, memory, REST/WebSocket gateway
+└── realtime-demo/         # Full-stack realtime demo: browser frontend, service backend, memory, ASR/TTS
 ```
 
 ## flash-attention-src/
@@ -26,4 +26,4 @@ A fork of [SGLang-Omni](https://github.com/sgl-project/sglang-omni) specialized 
 
 ## realtime-demo/
 
-The complete browser application for realtime video and voice interaction with MOSS-VL-Realtime: camera and screen input, streaming captions, optional ASR (SenseVoice) and TTS (MOSS-TTS-Nano), text and image memory, plus a REST session API and a WebSocket gateway. It runs against the SGLang-Omni backend in [`sglang-omni/`](./sglang-omni/) — see [`realtime-demo/README.md`](./realtime-demo/README.md) for the installer and deployment guide. Copied from [fnlp-vision/MOSS-VL-Realtime_Demo](https://github.com/fnlp-vision/MOSS-VL-Realtime_Demo) — see [`realtime-demo/UPSTREAM.md`](./realtime-demo/UPSTREAM.md) for the exact snapshot. Note: the demo's own install docs still reference the backend by its GitHub repository name; the identical snapshot is the [`sglang-omni/`](./sglang-omni/) directory here.
+A complete full-stack application for realtime interaction with MOSS-VL-Realtime: a browser frontend (camera and screen sharing, streaming captions) plus a service backend (REST session API and WebSocket gateway) with a built-in memory system for long conversations. It runs against the SGLang-Omni inference backend in [`sglang-omni/`](./sglang-omni/) — together they form the complete realtime serving path from browser to GPU. Voice is covered end to end: ASR (SenseVoice) for speech input, and TTS for speech output either deployed locally (MOSS-TTS-Nano, CosyVoice) or via cloud API keys (ElevenLabs, MiniMax). See [`realtime-demo/README.md`](./realtime-demo/README.md) for the installer and deployment guide (its docs refer to the backend by its GitHub name [`fnlp-vision/sglang-omni-realtime`](https://github.com/fnlp-vision/sglang-omni-realtime) — the identical snapshot is [`sglang-omni/`](./sglang-omni/) here). Copied from [fnlp-vision/MOSS-VL-Realtime_Demo](https://github.com/fnlp-vision/MOSS-VL-Realtime_Demo); see [`realtime-demo/UPSTREAM.md`](./realtime-demo/UPSTREAM.md) for the exact snapshot.
