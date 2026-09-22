@@ -2,8 +2,8 @@
 
 This directory is a full snapshot of
 [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime),
-copied into this repository on 2026-09-18 at commit
-`6fb66e4144291ed2f83cc364babbd6dc45358d0f` (branch `main`). Only the `.git/`
+copied into this repository on 2026-09-22 at commit
+`caea11c07df8f6001d0440d49379e2719173337f` (branch `main`). Only the `.git/`
 and `.claude/` metadata directories were removed; all remaining file contents
 are byte-identical to the upstream snapshot.
 

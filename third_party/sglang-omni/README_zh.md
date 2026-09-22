@@ -2,7 +2,7 @@
 
 [English](./README.md) | **简体中文**
 
-基于 [SGLang-Omni](https://github.com/sgl-project/sglang-omni) 开发的 MOSS-VL 实时视频理解后端，使用 [SGLang](https://github.com/sgl-project/sglang) 推理。客户端通过 WebSocket 持续发送视频帧与问题，接收文本、静默和输入处理事件。
+基于 [SGLang-Omni](https://github.com/sgl-project/sglang-omni) 开发的 MOSS-VL 实时视频理解后端，使用 [SGLang](https://github.com/sgl-project/sglang) 推理。本仓库是 SGLang-Omni 的特化分支，以上游提交 `573ce796`（2026-08-15）为基准，专注于 MOSS-VL 实时视频理解的推理服务。客户端通过 WebSocket 持续发送视频帧与问题，接收文本、静默和输入处理事件。
 
 [安装指南](./docs/get_started/installation_zh.md) | [启动与测试](./deployment/moss_vl_realtime/README_zh.md) | [WebSocket 协议](./docs/cookbook/moss_vl_realtime.md) | [Demo](https://github.com/fnlp-vision/MOSS-VL-Realtime_Demo)
 
@@ -141,6 +141,13 @@ CUDA_VISIBLE_DEVICES="" python -m pytest -q \
 
 ## 来源与许可证
 
-本项目基于 [sgl-project/sglang-omni](https://github.com/sgl-project/sglang-omni)，保留其框架、Git 历史和 [Apache License 2.0](./LICENSE)。此前开发使用 [CloudRipple/sglang-omni](https://github.com/CloudRipple/sglang-omni)，当前版本在 [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime) 维护。
+本项目基于 [sgl-project/sglang-omni](https://github.com/sgl-project/sglang-omni)（上游提交 `573ce796`，2026-08-15），保留其框架、Git 历史和 [Apache License 2.0](./LICENSE)。此前开发使用 [CloudRipple/sglang-omni](https://github.com/CloudRipple/sglang-omni)，当前版本在 [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime) 维护。
+
+在该基准之上，本仓库围绕 MOSS-VL 实时服务开展开发：
+
+- MOSS-VL 实时模型与服务栈（`sglang_omni/models/`、`deployment/moss_vl_realtime/`），涵盖流式会话、视觉 KV 滑窗与多副本推理；
+- Ascend NPU 支持（`patches/npu/`、`deployment/npu/`）；
+- 面向多实例部署的路由适配层（`vl_legacy_adapter/`、`vl_api_adapter/`）；
+- 对共享运行时（`sglang_omni/pipeline/`、`sglang_omni/scheduling/`、`sglang_omni/serve/`、`sglang_omni/config/`）的适配修改，服务于实时会话、KV 生命周期与平台放置。
 
 问题反馈请提交至[本仓库 Issues](https://github.com/fnlp-vision/sglang-omni-realtime/issues)。感谢 SGLang-Omni、SGLang 与 MOSS-VL 团队。

@@ -184,7 +184,7 @@ def test_migrated_defaults() -> None:
         s = Settings()
         assert s.autoload_vlm is True
         assert s.do_sample is True
-        assert s.max_tokens_per_turn == 86400  # uncapped default (frontend paces display)
+        assert s.max_tokens_per_turn == 86400  # uncapped default; UI knob sends an explicit tokens/s cap
         assert s.vision_seq_pad_multiple_override == 1
         assert s.model_path and s.hf_mode == "online_streaming"
         # default: moss_tts_realtime when vllm + its ckpt exist, else vllm_omni,

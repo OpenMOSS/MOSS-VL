@@ -119,9 +119,10 @@ test("one oversized QA is rejected whole, not silently truncated", async () => {
   assert.equal(generated.length, 0);
 });
 
-test("pins must be verbatim source excerpts", async () => {
+test("non-verbatim pins are dropped after repair, never kept, never fatal", async () => {
   output = { summary: "hello", pins: ["fabricated identifier"] };
-  await assert.rejects(compactJournal({ journal: "用户: hello\n助手: hi" }), /verbatim/);
+  const result = await compactJournal({ journal: "用户: hello\n助手: hi" });
+  assert.deepEqual(result.pins, []);
 });
 
 test("pins can be validated against raw earlier chunks, not just previous selected pins", async () => {

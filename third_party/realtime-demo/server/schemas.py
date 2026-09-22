@@ -33,7 +33,8 @@ class GenerationParams(BaseModel):
     max_new_tokens: int = 4096
     # tokens-per-SECOND generation rate cap; None → server default
     # (Settings.max_tokens_per_turn ← GEN_MAX_TOKENS_PER_TURN, default 86400
-    # = uncapped; the frontend paces display only)
+    # = uncapped for API callers; the UI rate knob sends an explicit value
+    # at session creation, restoring the original generation-paced display)
     max_tokens_per_turn: Optional[int] = None
     min_pixels: Optional[int] = None
     max_pixels: Optional[int] = None

@@ -76,11 +76,20 @@ export async function compactJournal({ journal, summaryMaxTokens = 200 }) {
     // A fact may survive in the rolling summary without being selected as a
     // pin in the previous chunk. Validate against raw history already covered.
     const source = blocks.slice(0, end).join("\n");
+    // First failure triggers completeJson's repair nudge; if pins still are not
+    // verbatim after the retry, drop just those pins instead of failing the
+    // whole compact (never keep a fabricated pin, never lose the session context).
+    let repairAttempted = false;
     const next = await completeJson({ model, systemPrompt, userText: prompt(end), schema: compactSchema,
       timeoutMs: Math.max(1, deadline - Date.now()), maxTokens: 4096,
       validate: async (json) => {
         const result = await normalizeCompact(json, model, summaryMaxTokens);
-        if (result.pins.some((pin) => !source.includes(pin))) throw new Error("compact pins must be verbatim journal excerpts");
+        const bad = result.pins.filter((pin) => !source.includes(pin));
+        if (bad.length) {
+          if (!repairAttempted) { repairAttempted = true; throw new Error("compact pins must be verbatim journal excerpts"); }
+          console.warn(`[pi_agent] compact dropping ${bad.length} non-verbatim pins (kept ${result.pins.length - bad.length})`);
+          result.pins = result.pins.filter((pin) => source.includes(pin));
+        }
         return result;
       },
     });

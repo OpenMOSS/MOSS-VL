@@ -2,7 +2,7 @@
 
 **English** | [简体中文](./README_zh.md)
 
-A realtime video-understanding backend for MOSS-VL, built on [SGLang-Omni](https://github.com/sgl-project/sglang-omni) and powered by [SGLang](https://github.com/sgl-project/sglang). Clients stream frames and questions over WebSocket and receive text, silence, and input-processing events.
+A realtime video-understanding backend for MOSS-VL. This repository is a specialized fork of [SGLang-Omni](https://github.com/sgl-project/sglang-omni) (powered by [SGLang](https://github.com/sgl-project/sglang)), based on upstream commit `573ce796` (2026-08-15), focused on serving MOSS-VL for realtime video understanding. Clients stream frames and questions over WebSocket and receive text, silence, and input-processing events.
 
 [Installation](./docs/get_started/installation.md) | [Launch and tests](./deployment/moss_vl_realtime/README.md) | [WebSocket protocol](./docs/cookbook/moss_vl_realtime.md) | [Demo](https://github.com/fnlp-vision/MOSS-VL-Realtime_Demo)
 
@@ -145,6 +145,13 @@ sending this field to older backends.
 
 ## Upstream and License
 
-Based on [sgl-project/sglang-omni](https://github.com/sgl-project/sglang-omni), retaining its framework, Git history, and [Apache License 2.0](./LICENSE). Earlier development used [CloudRipple/sglang-omni](https://github.com/CloudRipple/sglang-omni); this fork is maintained at [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime).
+Based on [sgl-project/sglang-omni](https://github.com/sgl-project/sglang-omni) at commit `573ce796` (2026-08-15), retaining its framework, Git history, and [Apache License 2.0](./LICENSE). Earlier development used [CloudRipple/sglang-omni](https://github.com/CloudRipple/sglang-omni); this fork is maintained at [fnlp-vision/sglang-omni-realtime](https://github.com/fnlp-vision/sglang-omni-realtime).
+
+Development on top of that base focuses on realtime serving of MOSS-VL:
+
+- a MOSS-VL realtime model and serving stack (`sglang_omni/models/`, `deployment/moss_vl_realtime/`), with streaming session, KV-window, and multi-replica support;
+- Ascend NPU enablement (`patches/npu/`, `deployment/npu/`);
+- routing adapters for multi-instance deployment (`vl_legacy_adapter/`, `vl_api_adapter/`);
+- adjustments to the shared runtime (`sglang_omni/pipeline/`, `sglang_omni/scheduling/`, `sglang_omni/serve/`, `sglang_omni/config/`) for realtime sessions, KV lifecycle, and platform placement.
 
 Report issues in [this repository](https://github.com/fnlp-vision/sglang-omni-realtime/issues). Thanks to the SGLang-Omni, SGLang, and MOSS-VL teams.

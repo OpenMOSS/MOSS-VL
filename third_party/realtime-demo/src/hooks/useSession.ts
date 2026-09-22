@@ -43,10 +43,10 @@ export interface SessionUiConfig {
   temperature?: number;
   topP?: number;
   topK?: number;
-  /** GENERATION-RATE-DERIVED DISPLAY PACING, tokens/SECOND read as reveal
-   *  speed. Generation itself is uncapped server-side; a positive value drips
-   *  the streamed text into captions/transcript at the configured pace.
-   *  Applied at connect; 0/absent → reveal as fast as deltas arrive. */
+  /** tokens-per-SECOND generation rate cap, enforced by the backend engine
+   *  (sent on the wire as params.max_tokens_per_turn at session creation).
+   *  The caption/transcript reveal is immediate, so this knob IS the visible
+   *  text speed; audio follows at the same pace. */
   maxTokensPerTurn?: number;
 }
 
@@ -119,13 +119,11 @@ const LISTEN_CLEAR_MS = 8_000;
 // tokens live while the single downstream TTS is serialized/late. This is the
 // chars/sec that reads as a "full" swell (~fast bilingual streaming). Tunable.
 const GEN_RATE_FULL = 22;
-// Display pacing (the UI "rate" knob): streamed text sits in paceBufRef and
-// drips into the caption pipeline at rate × factor chars/s (the token→char
-// factor is empirical, ~1.6 chars/token measured on bilingual narration).
-// 0/absent = reveal immediately at model pace. An audio-followed ("karaoke")
-// pacing was tried and backed out — it held/garbled captions in practice.
+// Display pacing infrastructure (paceBufRef/drip) is kept but DISABLED:
+// connect() always leaves paceCharsPerSRef at 0 so text reveals at the real
+// model rate. (Knob-paced reveal was tried and caused captions to drift far
+// behind the TTS audio; keep the plumbing in case pacing ever returns.)
 const PACE_TICK_MS = 100;
-const PACE_CHARS_PER_TOKEN = 1.6;
 
 function toWireConfig(c: Partial<SessionUiConfig>): Record<string, unknown> {
   const wire: Record<string, unknown> = {};
@@ -146,8 +144,11 @@ function toWireConfig(c: Partial<SessionUiConfig>): Record<string, unknown> {
   if (c.temperature !== undefined) params.temperature = c.temperature;
   if (c.topP !== undefined) params.top_p = c.topP;
   if (c.topK !== undefined) params.top_k = c.topK;
-  // maxTokensPerTurn is intentionally NOT on the wire: generation is uncapped
-  // server-side; the value only paces local caption/transcript reveal.
+  // tokens-per-SECOND generation rate cap, paced by the backend engine
+  // (server/schemas.py GenerationParams.max_tokens_per_turn → real_time_generate)
+  if (c.maxTokensPerTurn !== undefined && c.maxTokensPerTurn > 0) {
+    params.max_tokens_per_turn = Math.round(c.maxTokensPerTurn);
+  }
   if (Object.keys(params).length > 0) wire.params = params;
   return wire;
 }
@@ -189,10 +190,14 @@ export function useSession(callbacks: UseSessionCallbacks) {
   const captionBufRef = useRef('');
   const aiSentencesRef = useRef(0); // sentences already committed for the open response
   // --- display pacing state (generation is uncapped; pacing is reveal-only) ---
+  // Continuous drip: deltas queue in paceBufRef and reveal at the configured
+  // chars/s REGARDLESS of round boundaries — a new model round never resets
+  // the stream. The ONLY truncation points are user interrupt (barge-in /
+  // cancel / context reseat → pending text discarded) and teardown (reveal
+  // everything still pending).
   const paceBufRef = useRef('');
   const paceCharsPerSRef = useRef(0); // 0 = immediate (no pacing)
   const paceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pacePendingFinalRef = useRef(false);
   const lastEmittedAtRef = useRef<number | null>(null); // server gen time of the latest delta
   const activeRef = useRef(false);
   const connectGenerationRef = useRef(0);
@@ -216,12 +221,10 @@ export function useSession(callbacks: UseSessionCallbacks) {
     connectGenerationRef.current += 1;
     micSetupAbortRef.current?.abort();
     micSetupAbortRef.current = null;
-    // A session cut mid-response leaves the words already streamed in the
-    // transcript: flush the reply buffer's uncommitted sentences + open tail
-    // as bubbles (the samp controller does the same on a scripted mid-stop).
-    // responseId gates it — a turn response.done already flushed stays flushed.
-    if (responseIdRef.current) flushAiSentences(true);
-    flushPaceBuffer();
+    // A session cut mid-response reveals + commits everything still pacing;
+    // endPaceTurn runs unconditionally (paced mode moves text through a
+    // buffer even with responseIdRef already cleared by response.done).
+    endPaceTurn(false);
     if (reportTimerRef.current) clearInterval(reportTimerRef.current);
     reportTimerRef.current = null;
     if (listenClearTimerRef.current) clearTimeout(listenClearTimerRef.current);
@@ -246,7 +249,6 @@ export function useSession(callbacks: UseSessionCallbacks) {
     captionBufRef.current = '';
     aiSentencesRef.current = 0;
     paceBufRef.current = '';
-    pacePendingFinalRef.current = false;
     lastEmittedAtRef.current = null;
     genRateRef.current = 0; // orb back to rest
     genDeltaTsRef.current = 0;
@@ -305,15 +307,9 @@ export function useSession(callbacks: UseSessionCallbacks) {
       paceBufRef.current = paceBufRef.current.slice(moved.length);
       revealFromCaptionBuf();
     }
-    if (!paceBufRef.current) {
-      if (paceTimerRef.current) {
-        clearInterval(paceTimerRef.current);
-        paceTimerRef.current = null;
-      }
-      if (pacePendingFinalRef.current) {
-        pacePendingFinalRef.current = false;
-        commitTurnTail();
-      }
+    if (!paceBufRef.current && paceTimerRef.current) {
+      clearInterval(paceTimerRef.current);
+      paceTimerRef.current = null;
     }
   };
 
@@ -321,21 +317,22 @@ export function useSession(callbacks: UseSessionCallbacks) {
     if (!paceTimerRef.current) paceTimerRef.current = setInterval(dripPaceBuffer, PACE_TICK_MS);
   };
 
-  // Barge-in / context re-seat / teardown: reveal everything still pacing —
-  // the turn is over server-side, the text must not trickle in afterwards.
-  const flushPaceBuffer = () => {
+  // Only real truncation point: user interrupt (barge-in / cancel / context
+  // reseat) discards still-hidden text and starts fresh; teardown (discard=false)
+  // instead reveals everything generated before committing. Either way the
+  // visible tail commits and per-turn sentence bookkeeping restarts.
+  const endPaceTurn = (discardPending: boolean) => {
     if (paceTimerRef.current) {
       clearInterval(paceTimerRef.current);
       paceTimerRef.current = null;
     }
     if (paceBufRef.current) {
-      captionBufRef.current += paceBufRef.current;
+      if (!discardPending) captionBufRef.current += paceBufRef.current;
       paceBufRef.current = '';
     }
-    if (pacePendingFinalRef.current) {
-      pacePendingFinalRef.current = false;
-      commitTurnTail();
-    }
+    commitTurnTail();
+    captionBufRef.current = '';
+    aiSentencesRef.current = 0;
   };
 
   const handleEvent = (ev: ServerEvent) => {
@@ -393,7 +390,7 @@ export function useSession(callbacks: UseSessionCallbacks) {
         if (status === 'running') {
           setContextCommand(command);
           playerRef.current?.stopAll();
-          flushPaceBuffer();
+          endPaceTurn(true);
           setListening(false);
           cb.current.onAsrPartial?.('');
         } else if (status === 'completed' || status === 'failed') {
@@ -421,17 +418,15 @@ export function useSession(callbacks: UseSessionCallbacks) {
       }
       case 'turn.speech_started':
         playerRef.current?.stopAll(); // duck: the user is talking over the reply
-        flushPaceBuffer();
+        endPaceTurn(true); // user interrupt: drop still-hidden text, start fresh
         setListening(true);
         break;
       case 'response.created':
+        // rounds continue the same reveal stream: NO text-state resets here
         responseIdRef.current = String(ev.response_id);
-        captionBufRef.current = '';
-        aiSentencesRef.current = 0;
         genRateRef.current = 0; // each turn's orb energy builds fresh from its tokens
         genDeltaTsRef.current = 0;
         setResponding(true);
-        cb.current.onCaption('ai', '');
         break;
       case 'response.text.delta':
         if (ev.response_id === responseIdRef.current) {
@@ -464,13 +459,8 @@ export function useSession(callbacks: UseSessionCallbacks) {
           setResponding(false);
           responseIdRef.current = null;
           if (typeof ev.gen_ended_at === 'number') lastEmittedAtRef.current = ev.gen_ended_at;
-          // with display pacing on, reveal keeps dripping until the buffer
-          // drains — THEN the tail commits (see dripPaceBuffer)
-          if (paceBufRef.current) {
-            pacePendingFinalRef.current = true;
-          } else {
-            commitTurnTail();
-          }
+          // text: nothing to do — whatever already dripped stays displayed;
+          // the reveal keeps going if the next round is still feeding
         }
         break;
       }
@@ -522,10 +512,10 @@ export function useSession(callbacks: UseSessionCallbacks) {
       setConnecting(true);
       setError(null);
       captureModeRef.current = config.captureMode;
-      // display pacing (see toWireConfig: never sent); tokens/s → chars/s; 0 = immediate
-      paceCharsPerSRef.current = config.maxTokensPerTurn && config.maxTokensPerTurn > 0
-        ? config.maxTokensPerTurn * PACE_CHARS_PER_TOKEN
-        : 0;
+      // reveal is immediate — the rate knob caps BACKEND generation
+      // (params.max_tokens_per_turn), so the visible text speed equals the
+      // real model rate; no client-side reveal pacing.
+      paceCharsPerSRef.current = 0;
       try {
         const res = await fetch(resolveApiUrl('/api/sessions'), {
           method: 'POST',
@@ -709,7 +699,7 @@ export function useSession(callbacks: UseSessionCallbacks) {
   const cancelResponse = useCallback(() => {
     socketRef.current?.sendJSON('response.cancel');
     playerRef.current?.stopAll();
-    flushPaceBuffer();
+    endPaceTurn(true);
   }, []);
 
   const updateConfig = useCallback((patch: Partial<SessionUiConfig>) => {

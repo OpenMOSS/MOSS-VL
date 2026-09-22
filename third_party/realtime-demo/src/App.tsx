@@ -2243,7 +2243,7 @@ export default function App() {
             temperature: parseParam(temperature, 0, 2, 0.7), // creation-time sampling
             topP: parseParam(topP, 0, 1, 0.8),
             topK: Math.round(parseParam(topK, 1, 100, 20)),
-            maxTokensPerTurn: Math.round(parseParam(maxTokensRate, 1, 500, 4)), // display reveal pace only — generation is uncapped server-side
+            maxTokensPerTurn: Math.round(parseParam(maxTokensRate, 1, 500, 4)), // backend generation rate cap (tokens/s); reveal is immediate, so this IS the visible text speed
           },
           initialClock: mediaFile?.kind === 'video' ? 'media' : 'live', // a still image sits on the live clock
         });
@@ -5507,7 +5507,7 @@ export default function App() {
                       />
                     </div>
                     <div className="param-cell">
-                      <label>{language === 'en' ? 'Reveal speed (tokens/s)' : '显示速度 tokens/s'}</label>
+                      <label>{language === 'en' ? 'Generation rate (tokens/s)' : '生成速率 tokens/s'}</label>
                       <input
                         type="number" className="liquid-number"
                         min="1" max="500" step="1"

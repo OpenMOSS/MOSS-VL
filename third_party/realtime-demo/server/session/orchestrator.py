@@ -711,6 +711,12 @@ class Orchestrator:
             await self._cancel_response(p.STOP_INTERRUPTED)
 
     async def _user_turn(self, text: str) -> None:
+        # A user turn always preempts: even with no LIVE response server-side,
+        # the client may still be PLAYING buffered audio of a finished reply —
+        # speech_started makes it stop that backlog immediately. (Without this,
+        # an uncapped model banks minutes of narration PCM ahead of playback and
+        # the user hears the old answer talk over their new question.)
+        self.state.emit(p.SPEECH_STARTED, transient=True)
         if self._any_response_live():
             await self._cancel_response(p.STOP_INTERRUPTED)
         try:
