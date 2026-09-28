@@ -12,7 +12,7 @@ from threading import Thread
 from typing import Any, Dict, Iterable, List
 from urllib.parse import urlparse
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import torch
 from transformers import AutoModelForCausalLM, AutoProcessor
