@@ -91,7 +91,7 @@ def copy_support_files(source_dir: Path, output_dir: Path) -> None:
             continue
         if source.name == "config.json":
             continue
-        if source.name == "model.safetensors.index.json":
+        if source.name in {"model.safetensors", "model.safetensors.index.json"}:
             continue
         if source.name.startswith("model-") and source.suffix == ".safetensors":
             continue
