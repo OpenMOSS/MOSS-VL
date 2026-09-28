@@ -15,7 +15,7 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, Iterable
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from PIL import Image
 

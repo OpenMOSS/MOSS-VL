@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 class DeviceUtilsTest(unittest.TestCase):
     def test_backend_selection_without_injecting_flash_attention(self):
-        path = Path(__file__).resolve().parents[2] / "device_utils.py"
+        path = Path(__file__).resolve().parents[3] / "device_utils.py"
         original_import = builtins.__import__
 
         def import_without_flash(name, *args, **kwargs):
