@@ -30,7 +30,7 @@ from transformers import AutoModelForCausalLM, AutoProcessor, BitsAndBytesConfig
 
 BASE_SKIP_MODULES = ["model.visual", "cross_attn", "lm_head"]
 # Files that save_pretrained regenerates; everything else is copied verbatim.
-GENERATED_FILES = {"config.json", "model.safetensors.index.json"}
+GENERATED_FILES = {"config.json", "model.safetensors", "model.safetensors.index.json"}
 
 
 def parse_args() -> argparse.Namespace:
