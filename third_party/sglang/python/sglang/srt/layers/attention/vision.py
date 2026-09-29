@@ -695,27 +695,31 @@ class VisionAscendAttention(nn.Module):
             seq_len_arg = cu_seqlens
         else:
             cu_seqlens = resolve_seqlens(cu_seqlens, bsz, seq_len, device="cpu")
-            seq_lens = cu_seqlens[1:] - cu_seqlens[:-1]
-            if seq_lens.is_npu:
-                seq_lens = seq_lens.to("cpu")
-            output = torch.empty_like(q)
-            seq_len_arg = seq_lens.to(torch.int32)
+            # cu_seqlens is already cumulative ([0, s1, s1+s2, ...]); take the
+            # tail as int64 per the TND contract. (Port of smoke patches/npu
+            # 0006: the previous per-frame int32 path mis-fed the kernel —
+            # TND wants actual_seq_lengths as cumulative sums, and the
+            # _npu_flash_attention_unpad path produced degraded vision
+            # embeddings on multi-frame rounds.)
+            seq_len_arg = cu_seqlens[1:].to(torch.int64).tolist()
 
         _, num_heads, head_size = q.shape
         num_kv_heads = k.shape[1]
 
         scale_value = softmax_scale if softmax_scale is not None else head_size**-0.5
 
-        torch_npu._npu_flash_attention_unpad(
+        output = torch_npu.npu_fused_infer_attention_score(
             query=q,
             key=k,
             value=v,
-            seq_len=seq_len_arg,
-            scale_value=scale_value,
+            actual_seq_lengths=seq_len_arg,
+            actual_seq_lengths_kv=seq_len_arg,
+            scale=scale_value,
             num_heads=num_heads,
-            num_kv_heads=num_kv_heads,
-            out=output,
-        )
+            num_key_value_heads=num_kv_heads,
+            sparse_mode=0,
+            input_layout="TND",
+        )[0]
         return output
 
 

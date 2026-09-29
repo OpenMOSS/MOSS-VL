@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from functools import partial
 from typing import Iterable, List, Optional, Tuple
 
@@ -136,6 +137,10 @@ class MossVLVisionBlock(nn.Module):
         self.norm1 = norm_layer(dim)
         self.norm2 = norm_layer(dim)
 
+        # Optional vision attention backend override (e.g. "ascend_attn" for
+        # the NPU fused flash kernel — flat memory instead of materialized
+        # attention, the structural fix for large multi-frame rounds).
+        _vision_backend = os.environ.get("SGLANG_MOSS_VISION_BACKEND") or None
         self.attn = VisionAttention(
             embed_dim=dim,
             num_heads=num_heads,
@@ -145,6 +150,7 @@ class MossVLVisionBlock(nn.Module):
             flatten_batch=True,
             quant_config=quant_config,
             prefix=add_prefix("attn", prefix),
+            qkv_backend=_vision_backend,
         )
         self.mlp = MossVLVisionMLP(
             dim,
@@ -317,6 +323,13 @@ class MossVLVisionModel(nn.Module):
             wpos_ids = wpos_ids.permute(0, 2, 1, 3).flatten()
             pos_ids.append(torch.stack([hpos_ids, wpos_ids], dim=-1).repeat(t, 1))
         pos_ids = torch.cat(pos_ids, dim=0)
+        # NPU: inv_freq is a non-persistent buffer built on CPU; realign it
+        # with the module device once, and co-locate pos_ids with the
+        # frequency table for the lookup below. (Port of smoke patch 0001.)
+        inv_freq = getattr(self.rotary_pos_emb, "inv_freq", None)
+        if inv_freq is not None and inv_freq.device != self.device:
+            self.rotary_pos_emb.inv_freq = inv_freq.to(self.device)
+        pos_ids = pos_ids.to(self.device)
         max_grid_size = grid_thw[:, 1:].max()
         rotary_pos_emb_full = self.rotary_pos_emb(max_grid_size)
         rotary_pos_emb = rotary_pos_emb_full[pos_ids].flatten(1)
@@ -1183,8 +1196,30 @@ class MossVLForConditionalGeneration(nn.Module):
         pixel_values: torch.Tensor,
         grid_thw: torch.Tensor,
     ) -> torch.Tensor:
-        """Run ViT encoder and insert separator tokens."""
-        hidden_states = self.visual(pixel_values, grid_thw=grid_thw)
+        """Run ViT encoder and insert separator tokens.
+
+        Optional frame chunking (``SGLANG_MOSS_VIT_CHUNK_FRAMES`` > 0): the
+        ViT attends per frame (cu_seqlens), so batching frames in chunks is
+        mathematically equivalent while capping the attention activation
+        footprint — the deterministic-OOM fix for large multi-frame rounds
+        (contract allows up to 8 frames) without shrinking the KV pool.
+        """
+        chunk_frames = int(os.environ.get("SGLANG_MOSS_VIT_CHUNK_FRAMES", "0") or 0)
+        num_frames = int(grid_thw.shape[0])
+        if chunk_frames <= 0 or num_frames <= chunk_frames:
+            return self.visual(pixel_values, grid_thw=grid_thw)
+
+        patches_per_frame = (
+            grid_thw[:, 0] * grid_thw[:, 1] * grid_thw[:, 2]
+        ).tolist()  # pre-merge patch tokens per frame (temporal=1)
+        feats = []
+        offset = 0
+        for start in range(0, num_frames, chunk_frames):
+            end = min(start + chunk_frames, num_frames)
+            n = int(sum(patches_per_frame[start:end]))
+            feats.append(self.visual(pixel_values[offset : offset + n], grid_thw=grid_thw[start:end]))
+            offset += n
+        hidden_states = torch.cat(feats, dim=0)
         # hidden_states is packed: (total_vision_tokens, hidden_size)
         return hidden_states
 

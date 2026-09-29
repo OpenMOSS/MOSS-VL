@@ -102,6 +102,16 @@ class Sampler(nn.Module):
         # Preprocess logits (custom processors and NaN handling)
         logits = self._preprocess_logits(logits, sampling_info)
 
+        # Apply penalties (frequency/presence/repetition) before sampling.
+        # The fork's refactor dropped the orchestrator.apply() call, so these
+        # penalties were silently ignored on every sampling path — leaving
+        # long-generation token loops (repeated word fragments) unmitigated.
+        # cumulate_output_tokens() is already called per decode step in
+        # schedule_batch.prepare_for_decode(); this is the missing apply half.
+        penalizer = sampling_info.penalizer_orchestrator
+        if penalizer is not None and penalizer.is_required:
+            penalizer.apply(logits)
+
         if sampling_info.is_all_greedy:
             # Use torch.argmax if all requests use greedy sampling
             batch_next_token_ids = torch.argmax(logits, -1)
