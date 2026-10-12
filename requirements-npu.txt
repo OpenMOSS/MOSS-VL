@@ -12,3 +12,13 @@ joblib==1.5.2
 einops==0.8.2
 ninja==1.13.0
 packaging==26.0
+
+# triton-ascend: the triton implementation for Ascend. REQUIRED by the
+# mrope/rotary triton kernels (layers/rotary_embedding/triton_kernels.py is
+# imported at module level by mrope.py; the multimodal rope path runs them
+# on NPU). Without it the model fails to load. Version verified against
+# torch_npu 2.8.0.post5 + CANN 9.0.0.
+triton-ascend==3.2.0
+pybind11
+pyyaml
+setuptools<80
