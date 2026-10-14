@@ -940,7 +940,7 @@ footer{max-width:var(--wide);margin:5rem auto 0;padding:2rem 1.5rem 3rem;
 
     <figure class="d-media" style="margin: 2rem 0;">
       <img src="assets/mossvl-realtime-architecture.png" alt="MOSS-VL-Realtime Architecture" style="max-width: 100%; height: auto; border: 1px solid var(--grid); border-radius: 8px;" />
-      <figcaption class="figcap" style="text-align:left; margin:.8rem 0 0;"><b>图 2：MOSS-VL-Realtime 架构示意图。</b>展示了解耦交叉注意力机制与时空表征模块的连接方式，支持音视频输入在统一的时空特征空间下进行高效交叉计算。</figcaption>
+      <figcaption class="figcap" style="text-align:left; margin:.8rem 0 0;"><b>图 2：MOSS-VL-Realtime 架构示意图。</b>展示视频特征与文本生成模块如何通过交叉注意力连接，并利用 XRoPE 建立统一的时空位置表示，支持持续视频输入与实时回答。</figcaption>
     </figure>
 
     <p>这种交互与时空建模能力不仅得益于架构的合理设计，更源于多模态语料的全面重构。我们引入了全新的流式 SFT 交互训练方案，使得模型能够在序列生成的任一时刻精准预测说话时机或主动保持沉默。</p>

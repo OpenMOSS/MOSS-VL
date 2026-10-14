@@ -978,7 +978,7 @@ footer{max-width:var(--wide);margin:5rem auto 0;padding:2rem 1.5rem 3rem;
 
     <figure class="d-media" style="margin: 2rem 0;">
       <img src="assets/mossvl-realtime-architecture.png" alt="MOSS-VL-Realtime Architecture" style="max-width: 100%; height: auto; border: 1px solid var(--grid); border-radius: 8px;" />
-      <figcaption class="figcap" style="text-align:left; margin:.8rem 0 0;"><b>Figure 2: MOSS-VL-Realtime architecture.</b> Shows the decoupled cross-attention and spatiotemporal representations, supporting audio-visual inputs in a unified feature space.</figcaption>
+      <figcaption class="figcap" style="text-align:left; margin:.8rem 0 0;"><b>Figure 2: MOSS-VL-Realtime architecture.</b> Video features interact with the language decoder through cross-attention. XRoPE provides a shared spatiotemporal positional representation, supporting continuous video input and real-time responses.</figcaption>
     </figure>
 
     <p>This interaction and spatiotemporal modeling capability stems not only from a rational architecture but from a comprehensive rebuild of multimodal corpora. We introduced a new streaming SFT interaction training paradigm, enabling the model to precisely predict when to speak or proactively stay silent at any moment of sequence generation.</p>
